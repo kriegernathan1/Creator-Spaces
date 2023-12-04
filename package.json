@@ -1,0 +1,22 @@
+{
+  "name": "creator-spaces",
+  "version": "1.0.0",
+  "description": "A Platform for content creators to build a custom space for their followers to consume their creations.",
+  "main": "service1.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kriegernathan1/Creator-Spaces.git"
+  },
+  "author": "Nathan Krieger",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kriegernathan1/Creator-Spaces/issues"
+  },
+  "homepage": "https://github.com/kriegernathan1/Creator-Spaces#readme",
+  "dependencies": {
+    "sqlite3": "^5.1.6"
+  }
+}
