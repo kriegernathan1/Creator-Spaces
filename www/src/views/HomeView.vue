@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import TheWelcome from '../components/TheWelcome.vue'
+
 </script>
 
 <template>
-  <main>
-    <TheWelcome />
-  </main>
+  <div>
+    Welcome To Creator spaces
+  </div>
 </template>
+
+
+<style lang="scss" scoped></style>
