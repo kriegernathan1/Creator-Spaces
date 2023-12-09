@@ -29,7 +29,7 @@ interface Dependencies {
   securityService: ISecurityService;
 }
 
-class UserService implements IUserService {
+export class UserService implements IUserService {
   private userRepository: IUserRepository;
   private securityService: ISecurityService;
 
