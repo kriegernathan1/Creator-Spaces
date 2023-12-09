@@ -7,9 +7,10 @@ interface Dependencies {
 }
 
 export interface IUserRepository {
-  getUser(userId: string, namespace: string): Promise<User | undefined>;
-  getUsers(namespace?: string): Promise<User[] | []>;
+  getUser(userId: string): Promise<User | undefined>;
+  getUsers(namespace: string): Promise<User[] | []>;
   addUser(user: NewUser): Promise<boolean>;
+  deleteUser(userId: string): Promise<boolean>;
 }
 
 export class UserRepository implements IUserRepository {
@@ -18,7 +19,7 @@ export class UserRepository implements IUserRepository {
     this.client = this.dependencies.DatabaseService.getClient();
   }
 
-  async getUser(userId: string, namespace: string): Promise<User | undefined> {
+  async getUser(userId: string): Promise<User | undefined> {
     return await this.client
       .selectFrom("user")
       .selectAll()
@@ -26,8 +27,12 @@ export class UserRepository implements IUserRepository {
       .executeTakeFirst();
   }
 
-  async getUsers(namespace?: string): Promise<User[] | []> {
-    return await this.client.selectFrom("user").selectAll().execute();
+  async getUsers(namespace: string): Promise<User[] | []> {
+    return await this.client
+      .selectFrom("user")
+      .selectAll()
+      .where("namespace", "==", namespace)
+      .execute();
   }
 
   async addUser(user: NewUser): Promise<boolean> {
@@ -52,11 +57,7 @@ export class UserRepository implements IUserRepository {
     }
   }
 
-  async deleteUser(
-    userId: string,
-    namespace: string,
-    user: NewUser
-  ): Promise<boolean> {
+  async deleteUser(userId: string): Promise<boolean> {
     try {
       return !!(await this.client.deleteFrom("user").where("id", "==", userId));
     } catch {
