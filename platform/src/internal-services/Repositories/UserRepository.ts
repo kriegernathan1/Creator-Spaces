@@ -59,7 +59,8 @@ export class UserRepository implements IUserRepository {
 
   async deleteUser(userId: string): Promise<boolean> {
     try {
-      return !!(await this.client.deleteFrom("user").where("id", "==", userId));
+      await this.client.deleteFrom("user").where("id", "==", userId);
+      return true;
     } catch {
       return false;
     }
