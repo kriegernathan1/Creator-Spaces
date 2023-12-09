@@ -14,8 +14,9 @@ export interface UserTable {
   id: ColumnType<string, string | undefined, never>;
   firstName: string;
   lastName: string;
-  createdAt: ColumnType<Date, string | undefined, never>;
+  createdAt: ColumnType<Date, never, never>;
   namespace: string;
+  password: string;
   role: "creator" | "user" | "moderator";
 }
 

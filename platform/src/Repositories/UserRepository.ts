@@ -1,5 +1,8 @@
-import { DatabaseClient, IDatabaseService } from "../Database/DatabaseService";
-import { NewUser, UpdateUser, User } from "../Database/types";
+import {
+  DatabaseClient,
+  IDatabaseService,
+} from "../internal-services/Database/DatabaseService";
+import { NewUser, UpdateUser, User } from "../internal-services/Database/types";
 import { v4 as uuidv4 } from "uuid";
 
 interface Dependencies {

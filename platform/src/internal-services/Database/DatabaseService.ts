@@ -32,7 +32,7 @@ export class DatabaseService implements IDatabaseService {
     this.client = new Kysely<Database>({ dialect });
   }
 
-  getClient(): Kysely<Database> {
+  getClient(): DatabaseClient {
     return this.client;
   }
 }
