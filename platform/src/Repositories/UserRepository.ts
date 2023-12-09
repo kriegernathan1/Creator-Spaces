@@ -34,13 +34,13 @@ export class UserRepository implements IUserRepository {
       return await this.client
         .selectFrom("user")
         .selectAll()
-        .where("email", "==", propertyValue.email)
+        .where("email", "=", propertyValue.email)
         .executeTakeFirst();
     } else if (propertyValue.userId) {
       return await this.client
         .selectFrom("user")
         .selectAll()
-        .where("id", "==", propertyValue.userId as string)
+        .where("id", "=", propertyValue.userId as string)
         .executeTakeFirst();
     }
 
@@ -51,7 +51,7 @@ export class UserRepository implements IUserRepository {
     return await this.client
       .selectFrom("user")
       .selectAll()
-      .where("namespace", "==", namespace)
+      .where("namespace", "=", namespace)
       .execute();
   }
 
@@ -70,7 +70,7 @@ export class UserRepository implements IUserRepository {
 
   async updateUser(userId: string, user: UpdateUser): Promise<boolean> {
     try {
-      await this.client.updateTable("user").set(user).where("id", "==", userId);
+      await this.client.updateTable("user").set(user).where("id", "=", userId);
       return true;
     } catch {
       return false;
@@ -79,7 +79,7 @@ export class UserRepository implements IUserRepository {
 
   async deleteUser(userId: string): Promise<boolean> {
     try {
-      await this.client.deleteFrom("user").where("id", "==", userId);
+      await this.client.deleteFrom("user").where("id", "=", userId);
       return true;
     } catch {
       return false;
