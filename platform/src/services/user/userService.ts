@@ -1,17 +1,11 @@
 import { Request, Response, Router } from "express";
+import { userService } from "../../internal-services/ServiceManager";
 
 const userRouter = Router({ mergeParams: true });
 
-userRouter.get("/users", (req: Request, res: Response) => {
-  res.send("get all users");
-});
-
-userRouter.get("/:id", (req: Request, res: Response) => {
-  res.send(`get user id ${req.params.id}`);
-});
-
-userRouter.get("*", (req: Request, res: Response) => {
-  res.send("got to user fallback route");
+userRouter.post("/signup", async (req: Request, res: Response) => {
+  const signupRes = await userService.signup(req.body);
+  res.json(signupRes);
 });
 
 export default userRouter;

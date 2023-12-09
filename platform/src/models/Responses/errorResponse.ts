@@ -6,7 +6,7 @@ export interface IErrorResponse extends IBaseResponse {
   };
 }
 
-export function ErrorResponse(code: number, message: string): ErrorResponse {
+export function ErrorResponse(code: number, message: string): IErrorResponse {
   const res = BaseResponse(code);
   return {
     ...res,

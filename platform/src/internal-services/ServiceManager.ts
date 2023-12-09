@@ -10,19 +10,30 @@ export interface Services {
   securityService: SecurityService;
 }
 
-const databaseService = new DatabaseService({
-  connectionString: process.env.DEV_POSTGRESQL_DB_CONN_URL,
-});
+let userService: UserService;
 
-const userRepository = new UserRepository({
-  DatabaseService: databaseService,
-});
+export function setupServices() {
+  const connectionString = process.env.DEV_POSTGRESQL_DB_CONN_URL;
 
-const securityService = new SecurityService({});
+  if (connectionString === undefined) {
+    console.error("Bad connection string");
+    process.exit(1);
+  }
 
-const userService = new UserService({
-  securityService,
-  userRepository,
-});
+  const databaseService = new DatabaseService({
+    connectionString: connectionString,
+  });
+
+  const userRepository = new UserRepository({
+    DatabaseService: databaseService,
+  });
+
+  const securityService = new SecurityService({});
+
+  userService = new UserService({
+    securityService,
+    userRepository,
+  });
+}
 
 export { userService };
