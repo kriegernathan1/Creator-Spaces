@@ -1,37 +1,38 @@
+import { Kysely, PostgresDialect } from "kysely";
 import { Client, Pool, PoolClient } from "pg";
+import { Database } from "./types";
 
-interface IDatabaseService {
-  getClient(): PoolClient | undefined;
+export interface IDatabaseService {
+  getClient(): DatabaseClient;
 }
 
-interface DatabaseServiceDependencies {
+export type DatabaseClient = Kysely<Database>;
+
+interface Dependencies {
   connectionString: string;
 }
 
 const MAX_CONNECTIONS = 50;
 
-class DatabaseService implements IDatabaseService {
-  private client!: PoolClient;
+export class DatabaseService implements IDatabaseService {
+  private client!: Kysely<Database>;
 
-  constructor(private dependencies: DatabaseServiceDependencies) {
+  constructor(private dependencies: Dependencies) {
     this.setupConnectionPool();
   }
 
-  async setupConnectionPool() {
-    const pool = new Pool({
-      connectionString: this.dependencies.connectionString,
-      max: MAX_CONNECTIONS,
+  setupConnectionPool() {
+    const dialect = new PostgresDialect({
+      pool: new Pool({
+        connectionString: this.dependencies.connectionString,
+        max: MAX_CONNECTIONS,
+      }),
     });
 
-    try {
-      this.client = await pool.connect();
-    } catch {
-      console.error("unable to connect to database");
-      process.exit();
-    }
+    this.client = new Kysely<Database>({ dialect });
   }
 
-  getClient(): PoolClient {
+  getClient(): Kysely<Database> {
     return this.client;
   }
 }
