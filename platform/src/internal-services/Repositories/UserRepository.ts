@@ -13,7 +13,7 @@ export interface IUserRepository {
 export class UserRepository implements IUserRepository {
   private client: DatabaseClient;
   constructor(private dependencies: Dependencies) {
-    this.client = dependencies.DatabaseService.getClient();
+    this.client = this.dependencies.DatabaseService.getClient();
   }
 
   async getUser(userId: string, namespace: string): Promise<User | undefined> {
