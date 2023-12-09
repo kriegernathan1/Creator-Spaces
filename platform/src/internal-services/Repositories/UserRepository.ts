@@ -1,5 +1,6 @@
 import { DatabaseClient, IDatabaseService } from "../Database/Database";
-import { User } from "../Database/types";
+import { NewUser, UpdateUser, User } from "../Database/types";
+import { v4 as uuidv4 } from "uuid";
 
 interface Dependencies {
   DatabaseService: IDatabaseService;
@@ -8,6 +9,7 @@ interface Dependencies {
 export interface IUserRepository {
   getUser(userId: string, namespace: string): Promise<User | undefined>;
   getUsers(namespace?: string): Promise<User[] | []>;
+  addUser(user: NewUser): Promise<boolean>;
 }
 
 export class UserRepository implements IUserRepository {
@@ -20,11 +22,45 @@ export class UserRepository implements IUserRepository {
     return await this.client
       .selectFrom("user")
       .selectAll()
-      .where("id", "=", userId)
+      .where("id", "==", userId)
       .executeTakeFirst();
   }
 
   async getUsers(namespace?: string): Promise<User[] | []> {
     return await this.client.selectFrom("user").selectAll().execute();
+  }
+
+  async addUser(user: NewUser): Promise<boolean> {
+    if (!user.id) {
+      user.id = uuidv4();
+    }
+
+    try {
+      await this.client.insertInto("user").values(user).execute();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async updateUser(userId: string, user: UpdateUser): Promise<boolean> {
+    try {
+      await this.client.updateTable("user").set(user).where("id", "==", userId);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async deleteUser(
+    userId: string,
+    namespace: string,
+    user: NewUser
+  ): Promise<boolean> {
+    try {
+      return !!(await this.client.deleteFrom("user").where("id", "==", userId));
+    } catch {
+      return false;
+    }
   }
 }

@@ -11,7 +11,7 @@ export interface Database {
 }
 
 export interface UserTable {
-  id: Generated<string>;
+  id: ColumnType<string, string | undefined, never>;
   firstName: string;
   lastName: string;
   createdAt: ColumnType<Date, string | undefined, never>;
