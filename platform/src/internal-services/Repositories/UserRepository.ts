@@ -1,4 +1,4 @@
-import { DatabaseClient, IDatabaseService } from "../Database/Database";
+import { DatabaseClient, IDatabaseService } from "../Database/DatabaseService";
 import { NewUser, UpdateUser, User } from "../Database/types";
 import { v4 as uuidv4 } from "uuid";
 
