@@ -9,8 +9,13 @@ interface Dependencies {
   DatabaseService: IDatabaseService;
 }
 
+interface SupportedFetchProperties {
+  userId?: string;
+  email?: string;
+}
+
 export interface IUserRepository {
-  getUser(userId: string): Promise<User | undefined>;
+  getUser(propertyValue: SupportedFetchProperties): Promise<User | undefined>;
   getUsers(namespace: string): Promise<User[] | []>;
   addUser(user: NewUser): Promise<boolean>;
   deleteUser(userId: string): Promise<boolean>;
@@ -22,12 +27,24 @@ export class UserRepository implements IUserRepository {
     this.client = this.dependencies.DatabaseService.getClient();
   }
 
-  async getUser(userId: string): Promise<User | undefined> {
-    return await this.client
-      .selectFrom("user")
-      .selectAll()
-      .where("id", "==", userId)
-      .executeTakeFirst();
+  async getUser(
+    propertyValue: SupportedFetchProperties
+  ): Promise<User | undefined> {
+    if (propertyValue.email) {
+      return await this.client
+        .selectFrom("user")
+        .selectAll()
+        .where("email", "==", propertyValue.email)
+        .executeTakeFirst();
+    } else if (propertyValue.userId) {
+      return await this.client
+        .selectFrom("user")
+        .selectAll()
+        .where("id", "==", propertyValue.userId as string)
+        .executeTakeFirst();
+    }
+
+    console.warn("No supported property based to getUser in User Repository");
   }
 
   async getUsers(namespace: string): Promise<User[] | []> {

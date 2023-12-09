@@ -14,6 +14,7 @@ export interface UserTable {
   id: ColumnType<string, string | undefined, never>;
   firstName: string;
   lastName: string;
+  email: string;
   createdAt: ColumnType<Date, never, never>;
   namespace: string;
   password: string;
