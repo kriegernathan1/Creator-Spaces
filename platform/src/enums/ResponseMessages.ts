@@ -1,6 +1,7 @@
 export enum ResponseMessages {
-  //Generic Messages
+  // Generic Messages =========================================
   InternalServerError = "An internal server error occured",
+  // End Generic Messages =====================================
 
   // User Service ===================================
   PasswordsDontMatch = "Passwords do not match.",
