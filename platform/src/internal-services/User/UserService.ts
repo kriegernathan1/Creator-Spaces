@@ -47,6 +47,13 @@ class UserService implements IUserService {
       return Promise.resolve(errResponse);
     }
 
+    if (this.securityService.isPasswordStrong(fields.password) === false) {
+      return ErrorResponse(
+        HttpStatusCode.BadRequest,
+        ResponseMessages.WeakPassword
+      );
+    }
+
     delete (fields as any).passwordRepeated;
 
     const hashedPassword = await this.securityService.hashPassword(

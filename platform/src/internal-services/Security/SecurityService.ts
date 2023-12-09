@@ -6,6 +6,7 @@ export interface ISecurityService {
     plainTextPassword: string,
     hashedPassword: string
   ): Promise<boolean>;
+  isPasswordStrong(password: string): boolean;
 }
 
 interface Dependencies {}
@@ -24,5 +25,9 @@ export class SecurityService implements ISecurityService {
     hashedPassword: string
   ): Promise<boolean> {
     return await compare(plainTextPassword, hashedPassword);
+  }
+
+  isPasswordStrong(password: string): boolean {
+    return true;
   }
 }
