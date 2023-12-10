@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { IUserRepository } from "../../Repositories/UserRepository";
+import { IUserRepository } from "../../repositories/UserRepository";
 import { HttpStatusCode } from "../../enums/ResponseCodes";
 import { ResponseMessages } from "../../enums/ResponseMessages";
 import { BaseResponseFactory } from "../../models/Responses/Response";

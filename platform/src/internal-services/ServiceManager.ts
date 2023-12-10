@@ -1,4 +1,4 @@
-import { UserRepository } from "../Repositories/UserRepository";
+import { UserRepository } from "../repositories/UserRepository";
 import { DatabaseService } from "./Database/DatabaseService";
 import { SecurityService } from "./Security/SecurityService";
 import { UserService } from "./User/UserService";
