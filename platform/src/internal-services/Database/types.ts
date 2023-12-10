@@ -37,4 +37,14 @@ export const NewUserSchema = z.object({
   id: z.optional(z.string()),
 }) satisfies z.ZodType<NewUser>;
 
-export const UpdateUserSchema = z.object({}) satisfies z.ZodType<UpdateUser>;
+export const UpdateUserSchema = z
+  .object({
+    first_name: z.optional(z.string()),
+    last_name: z.optional(z.string()),
+    email: z.optional(z.string().email()),
+    namespace: z.optional(z.string()),
+    password: z.optional(z.string()),
+    role: z.optional(z.enum(["creator", "user", "moderator"])),
+    id: z.optional(z.optional(z.string())),
+  })
+  .strict() satisfies z.ZodType<UpdateUser>;

@@ -10,13 +10,17 @@ import {
 } from "../../internal-services/User/UserService";
 import { ErrorResponse } from "../../models/Responses/errorResponse";
 import { AuthenticatedRequest } from "../../platform";
+import {
+  UpdateUser,
+  UpdateUserSchema,
+} from "../../internal-services/Database/types";
 
 const userRouter = Router({ mergeParams: true });
 
 userRouter.post("/signup", async (req: Request, res: Response) => {
   if (SignUpFieldsSchema.safeParse(req.body).success === false) {
     res.json(
-      ErrorResponse(HttpStatusCode.BadRequest, ResponseMessages.BadRequest)
+      ErrorResponse(HttpStatusCode.BadRequest, ResponseMessages.BadRequest),
     );
 
     return;
@@ -28,7 +32,7 @@ userRouter.post("/signup", async (req: Request, res: Response) => {
 userRouter.post("/signin", async (req: Request, res: Response) => {
   if (SigninFieldsSchema.safeParse(req.body).success === false) {
     res.json(
-      ErrorResponse(HttpStatusCode.BadRequest, ResponseMessages.BadRequest)
+      ErrorResponse(HttpStatusCode.BadRequest, ResponseMessages.BadRequest),
     );
     return;
   }
@@ -49,7 +53,7 @@ userRouter.get("/user/:id?", async (req: Request, res: Response) => {
   const userId = req.params["id"];
   if (!userId) {
     res.json(
-      ErrorResponse(HttpStatusCode.BadRequest, ResponseMessages.BadRequest)
+      ErrorResponse(HttpStatusCode.BadRequest, ResponseMessages.BadRequest),
     );
     return;
   }
@@ -60,8 +64,25 @@ userRouter.get("/user/:id?", async (req: Request, res: Response) => {
   });
 });
 
-userRouter.all("*", (req: Request, res: Response) => {
-  res.send(req.params["id"]);
+userRouter.put("/user/:id?", async (req: Request, res: Response) => {
+  const badRequest = ErrorResponse(
+    HttpStatusCode.BadRequest,
+    ResponseMessages.BadRequest,
+  );
+
+  const userId = req.params["id"];
+  if (!userId) {
+    res.json(badRequest);
+    return;
+  }
+  if (UpdateUserSchema.safeParse(req.body).success === false) {
+    res.json(badRequest);
+    return;
+  }
+
+  const jwt = (req as AuthenticatedRequest).auth;
+  const user = req.body as UpdateUser;
+  res.json(await userService.updateUser(userId, jwt.namespace, user));
 });
 
 export default userRouter;

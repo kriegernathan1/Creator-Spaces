@@ -5,11 +5,13 @@ import { ResponseMessages } from "../../enums/ResponseMessages";
 import { BaseResponse } from "../../models/Responses/Response";
 import {
   ISigninResponse,
+  IUpdateUserResponse,
   SigninResponse,
+  UpdateUserResponse,
 } from "../../models/Responses/UserResponses";
 import { ErrorResponse } from "../../models/Responses/errorResponse";
 import { PlatformResponse } from "../../models/Responses/types";
-import { NewUser, NewUserSchema, User } from "../Database/types";
+import { NewUser, NewUserSchema, UpdateUser, User } from "../Database/types";
 import { ISecurityService } from "../Security/SecurityService";
 
 export interface SignupFields extends NewUser {
@@ -19,7 +21,7 @@ export interface SignupFields extends NewUser {
 export const SignUpFieldsSchema = NewUserSchema.and(
   z.object({
     passwordRepeated: z.string(),
-  })
+  }),
 ) satisfies z.ZodType<SignupFields>;
 
 export interface SigninFields {
@@ -49,6 +51,11 @@ export interface IUserService {
   signin(fields: SigninFields): Promise<ISigninResponse | PlatformResponse>;
   getUsers(namespace: string): Promise<RedactedUser[] | []>;
   getUser(userId: string): Promise<RedactedUser | undefined>;
+  updateUser(
+    userId: string,
+    namespace: string,
+    user: UpdateUser,
+  ): Promise<IUpdateUserResponse>;
 }
 
 interface Dependencies {
@@ -69,7 +76,7 @@ export class UserService implements IUserService {
     if (fields.passwordRepeated !== fields.password) {
       const errResponse = ErrorResponse(
         HttpStatusCode.BadRequest,
-        ResponseMessages.PasswordsDontMatch
+        ResponseMessages.PasswordsDontMatch,
       );
       return Promise.resolve(errResponse);
     }
@@ -77,12 +84,12 @@ export class UserService implements IUserService {
     if (this.securityService.isPasswordStrong(fields.password) === false) {
       return ErrorResponse(
         HttpStatusCode.BadRequest,
-        ResponseMessages.WeakPassword
+        ResponseMessages.WeakPassword,
       );
     }
 
     const hashedPassword = await this.securityService.hashPassword(
-      fields.password
+      fields.password,
     );
     fields.password = hashedPassword;
 
@@ -90,22 +97,22 @@ export class UserService implements IUserService {
     const isSuccessfulAdd = await this.userRepository.addUser(user);
 
     if (isSuccessfulAdd) {
-      return BaseResponse(HttpStatusCode.Ok);
+      return BaseResponse(HttpStatusCode.Created);
     }
 
     return ErrorResponse(
       HttpStatusCode.InternalServerError,
-      ResponseMessages.InternalServerError
+      ResponseMessages.InternalServerError,
     );
   }
 
   async signin(
-    fields: SigninFields
+    fields: SigninFields,
   ): Promise<ISigninResponse | PlatformResponse> {
     const user = await this.userRepository.getUser({ email: fields.email });
     const genericErrorResponse = ErrorResponse(
       HttpStatusCode.BadRequest,
-      ResponseMessages.UnableToFindUser
+      ResponseMessages.UnableToFindUser,
     );
 
     if (
@@ -118,7 +125,7 @@ export class UserService implements IUserService {
 
     const doPasswordsMatch = await this.securityService.arePasswordsEqual(
       fields.password,
-      user.password
+      user.password,
     );
 
     if (doPasswordsMatch === false) {
@@ -152,5 +159,26 @@ export class UserService implements IUserService {
       const { password, ...redactedUser } = user;
       return redactedUser;
     }
+  }
+
+  async updateUser(
+    userId: string,
+    namespace: string,
+    user: UpdateUser,
+  ): Promise<UpdateUserResponse> {
+    const result = await this.userRepository.updateUser(
+      userId,
+      namespace,
+      user,
+    );
+
+    if (result === false) {
+      return ErrorResponse(
+        HttpStatusCode.InternalServerError,
+        ResponseMessages.InternalServerError,
+      );
+    }
+
+    return BaseResponse(HttpStatusCode.Ok);
   }
 }

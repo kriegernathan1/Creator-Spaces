@@ -19,6 +19,11 @@ export interface IUserRepository {
   getUsers(namespace: string): Promise<User[] | []>;
   addUser(user: NewUser): Promise<boolean>;
   deleteUser(userId: string): Promise<boolean>;
+  updateUser(
+    userId: string,
+    namespace: string,
+    user: UpdateUser,
+  ): Promise<boolean>;
 }
 
 export class UserRepository implements IUserRepository {
@@ -28,7 +33,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async getUser(
-    propertyValue: SupportedFetchProperties
+    propertyValue: SupportedFetchProperties,
   ): Promise<User | undefined> {
     if (propertyValue.email) {
       return await this.client
@@ -68,11 +73,21 @@ export class UserRepository implements IUserRepository {
     }
   }
 
-  async updateUser(userId: string, user: UpdateUser): Promise<boolean> {
+  async updateUser(
+    userId: string,
+    namespace: string,
+    user: UpdateUser,
+  ): Promise<boolean> {
     try {
-      await this.client.updateTable("user").set(user).where("id", "=", userId);
+      await this.client
+        .updateTable("user")
+        .set(user)
+        .where("id", "=", userId)
+        .where("namespace", "=", namespace)
+        .execute();
       return true;
-    } catch {
+    } catch (e) {
+      console.log(e);
       return false;
     }
   }
