@@ -9,6 +9,7 @@ import {
   SignupFields,
 } from "../../internal-services/User/UserService";
 import { ErrorResponse } from "../../models/Responses/errorResponse";
+import { AuthenticatedRequest } from "../../platform";
 
 const userRouter = Router({ mergeParams: true });
 
@@ -17,6 +18,7 @@ userRouter.post("/signup", async (req: Request, res: Response) => {
     res.json(
       ErrorResponse(HttpStatusCode.BadRequest, ResponseMessages.BadRequest)
     );
+
     return;
   }
 
@@ -32,6 +34,15 @@ userRouter.post("/signin", async (req: Request, res: Response) => {
   }
 
   res.json(await userService.signin(req.body as SigninFields));
+});
+
+userRouter.get("/users", async (req: Request, res: Response) => {
+  const jwt = (req as AuthenticatedRequest).auth;
+  const users = await userService.getUsers(jwt.namespace);
+
+  res.json({
+    users,
+  });
 });
 
 export default userRouter;

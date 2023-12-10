@@ -1,19 +1,16 @@
-import { NewUser, NewUserSchema } from "../Database/types";
+import { z } from "zod";
 import { IUserRepository } from "../../Repositories/UserRepository";
-import { ISecurityService } from "../Security/SecurityService";
-import { IBaseResponse, BaseResponse } from "../../models/Responses/Response";
-import {
-  IErrorResponse,
-  ErrorResponse,
-} from "../../models/Responses/errorResponse";
 import { HttpStatusCode } from "../../enums/ResponseCodes";
-import { PlatformResponse } from "../../models/Responses/types";
 import { ResponseMessages } from "../../enums/ResponseMessages";
+import { BaseResponse } from "../../models/Responses/Response";
 import {
   ISigninResponse,
   SigninResponse,
 } from "../../models/Responses/UserResponses";
-import { z } from "zod";
+import { ErrorResponse } from "../../models/Responses/errorResponse";
+import { PlatformResponse } from "../../models/Responses/types";
+import { NewUser, NewUserSchema, User } from "../Database/types";
+import { ISecurityService } from "../Security/SecurityService";
 
 export interface SignupFields extends NewUser {
   passwordRepeated: string;
@@ -40,9 +37,15 @@ export interface IJwtPayload {
   namespace: string;
 }
 
+export const JwtPayloadSchema = z.object({
+  userId: z.string(),
+  namespace: z.string(),
+}) satisfies z.ZodType<IJwtPayload>;
+
 export interface IUserService {
   signup(fields: SignupFields): Promise<PlatformResponse>;
   signin(fields: SigninFields): Promise<ISigninResponse | PlatformResponse>;
+  getUsers(namespace: string): Promise<User[]>;
 }
 
 interface Dependencies {
@@ -127,5 +130,9 @@ export class UserService implements IUserService {
     const token = this.securityService.generateJwt(payload);
 
     return SigninResponse(HttpStatusCode.Ok, token);
+  }
+
+  async getUsers(namespace: string): Promise<User[]> {
+    return await this.userRepository.getUsers(namespace);
   }
 }

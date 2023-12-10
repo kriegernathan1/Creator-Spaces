@@ -1,53 +1,21 @@
-import express, { NextFunction, Request, Response } from "express";
+import { handleExpressJwtErrors, isAuthorizedMiddleware } from "./middleware";
+import dotenv from "dotenv";
+import express, { Request } from "express";
+import { expressjwt } from "express-jwt";
+import { setupServices } from "./internal-services/ServiceManager";
+import { IJwtPayload } from "./internal-services/User/UserService";
 import postRouter from "./services/post/postService";
 import userRouter from "./services/user/UserService";
-import dotenv from "dotenv";
-import { setupServices } from "./internal-services/ServiceManager";
-import { expressjwt } from "express-jwt";
-import { ErrorResponse } from "./models/Responses/errorResponse";
-import { HttpStatusCode } from "./enums/ResponseCodes";
-import { ResponseMessages } from "./enums/ResponseMessages";
+
+export interface AuthenticatedRequest extends Request {
+  auth: IJwtPayload;
+}
 
 dotenv.config();
 setupServices();
 
 const app = express();
 const PORT = process.env.PLATFORM_PORT;
-
-export const isAuthorizedMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  if (!(req as any).auth) {
-    res.json(
-      ErrorResponse(
-        HttpStatusCode.Unauthorized,
-        ResponseMessages.UnauthorizedAction
-      )
-    );
-    next(HttpStatusCode.Unauthorized);
-  }
-
-  next();
-};
-
-const handleExpressJwtErrors = (
-  err: Error,
-  _: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  if (err.name === "UnauthorizedError") {
-    res.json(
-      ErrorResponse(
-        HttpStatusCode.Unauthorized,
-        ResponseMessages.UnauthorizedAction
-      )
-    );
-    next(HttpStatusCode.Unauthorized);
-  }
-};
 
 app.use(express.json());
 app.use(
