@@ -45,7 +45,7 @@ export const JwtPayloadSchema = z.object({
 export interface IUserService {
   signup(fields: SignupFields): Promise<PlatformResponse>;
   signin(fields: SigninFields): Promise<ISigninResponse | PlatformResponse>;
-  getUsers(namespace: string): Promise<User[]>;
+  getUsers(namespace: string): Promise<Omit<User, "password">[] | []>;
 }
 
 interface Dependencies {
@@ -132,7 +132,12 @@ export class UserService implements IUserService {
     return SigninResponse(HttpStatusCode.Ok, token);
   }
 
-  async getUsers(namespace: string): Promise<User[]> {
-    return await this.userRepository.getUsers(namespace);
+  async getUsers(namespace: string): Promise<Omit<User, "password">[] | []> {
+    const users = await this.userRepository.getUsers(namespace);
+
+    return users.map((user) => {
+      delete (user as any).password;
+      return user;
+    });
   }
 }

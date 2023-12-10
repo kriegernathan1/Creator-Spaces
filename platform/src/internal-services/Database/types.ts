@@ -19,7 +19,7 @@ export interface UserTable {
   email: string;
   created_at: ColumnType<Date, never, never>;
   namespace: string;
-  password: string;
+  password: ColumnType<string, string, string | undefined>;
   role: "creator" | "user" | "moderator";
 }
 
