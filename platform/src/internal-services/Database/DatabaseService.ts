@@ -8,9 +8,9 @@ export interface IDatabaseService {
 
 export type DatabaseClient = Kysely<Database>;
 
-interface Dependencies {
+type Dependencies = {
   connectionString: string;
-}
+};
 
 const MAX_CONNECTIONS = 50;
 

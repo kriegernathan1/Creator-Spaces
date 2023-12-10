@@ -5,9 +5,9 @@ import {
 import { NewUser, UpdateUser, User } from "../internal-services/Database/types";
 import { v4 as uuidv4 } from "uuid";
 
-interface Dependencies {
+type Dependencies = {
   DatabaseService: IDatabaseService;
-}
+};
 
 interface SupportedFetchProperties {
   userId?: string;

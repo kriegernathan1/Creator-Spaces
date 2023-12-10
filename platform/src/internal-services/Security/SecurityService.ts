@@ -1,19 +1,30 @@
 import { compare, hash } from "bcrypt";
 import { sign } from "jsonwebtoken";
+import { z } from "zod";
 
 export interface ISecurityService {
   hashPassword(password: string): Promise<string>;
   arePasswordsEqual(
     plainTextPassword: string,
-    hashedPassword: string
+    hashedPassword: string,
   ): Promise<boolean>;
   isPasswordStrong(password: string): boolean;
   generateJwt(plainPayload: any): string;
 }
 
+export type JwtPayload = {
+  userId: string;
+  namespace: string;
+};
+
+export const JwtPayloadSchema = z.object({
+  userId: z.string(),
+  namespace: z.string(),
+}) satisfies z.ZodType<JwtPayload>;
+
 const JWT_TTL = "6H";
 
-interface Dependencies {}
+type Dependencies = {};
 
 export class SecurityService implements ISecurityService {
   readonly SALT_ROUNDS = 10;
@@ -26,7 +37,7 @@ export class SecurityService implements ISecurityService {
 
   async arePasswordsEqual(
     plainTextPassword: string,
-    hashedPassword: string
+    hashedPassword: string,
   ): Promise<boolean> {
     return await compare(plainTextPassword, hashedPassword);
   }

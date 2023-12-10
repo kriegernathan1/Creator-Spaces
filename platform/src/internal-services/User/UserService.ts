@@ -12,42 +12,22 @@ import {
 import { ErrorResponse } from "../../models/Responses/errorResponse";
 import { PlatformResponse } from "../../models/Responses/types";
 import { NewUser, NewUserSchema, UpdateUser, User } from "../Database/types";
-import { ISecurityService } from "../Security/SecurityService";
+import { ISecurityService, JwtPayload } from "../Security/SecurityService";
 
-export interface SignupFields extends NewUser {
-  passwordRepeated: string;
-}
-
-export const SignUpFieldsSchema = NewUserSchema.and(
-  z.object({
-    passwordRepeated: z.string(),
-  }),
-) satisfies z.ZodType<SignupFields>;
-
-export interface SigninFields {
+export type SigninFields = {
   email: string;
   password: string;
-}
+};
 
 export const SigninFieldsSchema = z.object({
   email: z.string().email(),
   password: z.string(),
 }) satisfies z.ZodType<SigninFields>;
 
-export interface IJwtPayload {
-  userId: string;
-  namespace: string;
-}
-
-export const JwtPayloadSchema = z.object({
-  userId: z.string(),
-  namespace: z.string(),
-}) satisfies z.ZodType<IJwtPayload>;
-
 type RedactedUser = Omit<User, "password">;
 
 export interface IUserService {
-  signup(fields: SignupFields): Promise<PlatformResponse>;
+  signup(user: User): Promise<PlatformResponse>;
   signin(fields: SigninFields): Promise<ISigninResponse | PlatformResponse>;
   getUsers(namespace: string): Promise<RedactedUser[] | []>;
   getUser(userId: string): Promise<RedactedUser | undefined>;
@@ -58,10 +38,10 @@ export interface IUserService {
   ): Promise<IUpdateUserResponse>;
 }
 
-interface Dependencies {
+type Dependencies = {
   userRepository: IUserRepository;
   securityService: ISecurityService;
-}
+};
 
 export class UserService implements IUserService {
   private userRepository: IUserRepository;
@@ -72,16 +52,8 @@ export class UserService implements IUserService {
     this.securityService = this.dependencies.securityService;
   }
 
-  async signup(fields: SignupFields): Promise<PlatformResponse> {
-    if (fields.passwordRepeated !== fields.password) {
-      const errResponse = ErrorResponse(
-        HttpStatusCode.BadRequest,
-        ResponseMessages.PasswordsDontMatch,
-      );
-      return Promise.resolve(errResponse);
-    }
-
-    if (this.securityService.isPasswordStrong(fields.password) === false) {
+  async signup(user: User): Promise<PlatformResponse> {
+    if (this.securityService.isPasswordStrong(user.password) === false) {
       return ErrorResponse(
         HttpStatusCode.BadRequest,
         ResponseMessages.WeakPassword,
@@ -89,11 +61,10 @@ export class UserService implements IUserService {
     }
 
     const hashedPassword = await this.securityService.hashPassword(
-      fields.password,
+      user.password,
     );
-    fields.password = hashedPassword;
+    user.password = hashedPassword;
 
-    const { passwordRepeated, ...user } = fields; // omit extra field
     const isSuccessfulAdd = await this.userRepository.addUser(user);
 
     if (isSuccessfulAdd) {
@@ -132,7 +103,7 @@ export class UserService implements IUserService {
       return genericErrorResponse;
     }
 
-    const payload: IJwtPayload = {
+    const payload: JwtPayload = {
       userId: user.id,
       namespace: user.namespace,
     };
