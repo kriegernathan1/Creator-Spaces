@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import {
   ColumnType,
   Generated,
@@ -24,3 +26,15 @@ export interface UserTable {
 export type User = Selectable<UserTable>;
 export type NewUser = Insertable<UserTable>;
 export type UpdateUser = Updateable<UserTable>;
+
+export const NewUserSchema = z.object({
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string().email(),
+  namespace: z.string(),
+  password: z.string(),
+  role: z.enum(["creator", "user", "moderator"]),
+  id: z.optional(z.string()),
+}) satisfies z.ZodType<NewUser>;
+
+export const UpdateUserSchema = z.object<UpdateUser>({});
