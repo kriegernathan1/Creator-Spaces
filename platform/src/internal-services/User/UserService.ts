@@ -42,10 +42,13 @@ export const JwtPayloadSchema = z.object({
   namespace: z.string(),
 }) satisfies z.ZodType<IJwtPayload>;
 
+type RedactedUser = Omit<User, "password">;
+
 export interface IUserService {
   signup(fields: SignupFields): Promise<PlatformResponse>;
   signin(fields: SigninFields): Promise<ISigninResponse | PlatformResponse>;
-  getUsers(namespace: string): Promise<Omit<User, "password">[] | []>;
+  getUsers(namespace: string): Promise<RedactedUser[] | []>;
+  getUser(userId: string): Promise<RedactedUser | undefined>;
 }
 
 interface Dependencies {
@@ -78,14 +81,13 @@ export class UserService implements IUserService {
       );
     }
 
-    delete (fields as any).passwordRepeated;
-
     const hashedPassword = await this.securityService.hashPassword(
       fields.password
     );
     fields.password = hashedPassword;
 
-    const isSuccessfulAdd = await this.userRepository.addUser(fields);
+    const { passwordRepeated, ...user } = fields; // omit extra field
+    const isSuccessfulAdd = await this.userRepository.addUser(user);
 
     if (isSuccessfulAdd) {
       return BaseResponse(HttpStatusCode.Ok);
@@ -132,12 +134,23 @@ export class UserService implements IUserService {
     return SigninResponse(HttpStatusCode.Ok, token);
   }
 
-  async getUsers(namespace: string): Promise<Omit<User, "password">[] | []> {
+  async getUsers(namespace: string): Promise<RedactedUser[] | []> {
     const users = await this.userRepository.getUsers(namespace);
 
     return users.map((user) => {
-      delete (user as any).password;
-      return user;
+      const { password, ...details } = user;
+      return details;
     });
+  }
+
+  async getUser(userId: string): Promise<RedactedUser | undefined> {
+    const user = await this.userRepository.getUser({
+      userId: userId,
+    });
+
+    if (user) {
+      const { password, ...redactedUser } = user;
+      return redactedUser;
+    }
   }
 }

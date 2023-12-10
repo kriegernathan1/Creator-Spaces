@@ -45,4 +45,23 @@ userRouter.get("/users", async (req: Request, res: Response) => {
   });
 });
 
+userRouter.get("/user/:id?", async (req: Request, res: Response) => {
+  const userId = req.params["id"];
+  if (!userId) {
+    res.json(
+      ErrorResponse(HttpStatusCode.BadRequest, ResponseMessages.BadRequest)
+    );
+    return;
+  }
+
+  const user = await userService.getUser(userId);
+  res.json({
+    user: user ?? {},
+  });
+});
+
+userRouter.all("*", (req: Request, res: Response) => {
+  res.send(req.params["id"]);
+});
+
 export default userRouter;
