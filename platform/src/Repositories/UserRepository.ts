@@ -86,8 +86,7 @@ export class UserRepository implements IUserRepository {
         .where("namespace", "=", namespace)
         .execute();
       return true;
-    } catch (e) {
-      console.log(e);
+    } catch {
       return false;
     }
   }
