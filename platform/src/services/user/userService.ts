@@ -1,38 +1,44 @@
 import { Request, Response, Router } from "express";
 import { HttpStatusCode } from "../../enums/ResponseCodes";
 import { ResponseMessages } from "../../enums/ResponseMessages";
-import { userService } from "../../internal-services/ServiceManager";
 import {
-  SignUpFieldsSchema,
-  SigninFields,
-  SigninFieldsSchema,
-  SignupFields,
-} from "../../internal-services/User/UserService";
-import { ErrorResponse } from "../../models/Responses/errorResponse";
-import { AuthenticatedRequest } from "../../platform";
-import {
+  NewUser,
+  NewUserSchema,
   UpdateUser,
   UpdateUserSchema,
 } from "../../internal-services/Database/types";
+import { userService } from "../../internal-services/ServiceManager";
+import {
+  SigninFields,
+  SigninFieldsSchema,
+} from "../../internal-services/User/UserService";
+import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
+import { AuthenticatedRequest } from "../../platform";
 
 const userRouter = Router({ mergeParams: true });
 
 userRouter.post("/signup", async (req: Request, res: Response) => {
-  if (SignUpFieldsSchema.safeParse(req.body).success === false) {
+  if (NewUserSchema.safeParse(req.body).success === false) {
     res.json(
-      ErrorResponse(HttpStatusCode.BadRequest, ResponseMessages.BadRequest),
+      ErrorResponseFactory(
+        HttpStatusCode.BadRequest,
+        ResponseMessages.BadRequest,
+      ),
     );
 
     return;
   }
 
-  res.json(await userService.signup(req.body as SignupFields));
+  res.json(await userService.signup(req.body as NewUser));
 });
 
 userRouter.post("/signin", async (req: Request, res: Response) => {
   if (SigninFieldsSchema.safeParse(req.body).success === false) {
     res.json(
-      ErrorResponse(HttpStatusCode.BadRequest, ResponseMessages.BadRequest),
+      ErrorResponseFactory(
+        HttpStatusCode.BadRequest,
+        ResponseMessages.BadRequest,
+      ),
     );
     return;
   }
@@ -53,7 +59,10 @@ userRouter.get("/user/:id?", async (req: Request, res: Response) => {
   const userId = req.params["id"];
   if (!userId) {
     res.json(
-      ErrorResponse(HttpStatusCode.BadRequest, ResponseMessages.BadRequest),
+      ErrorResponseFactory(
+        HttpStatusCode.BadRequest,
+        ResponseMessages.BadRequest,
+      ),
     );
     return;
   }
@@ -65,7 +74,7 @@ userRouter.get("/user/:id?", async (req: Request, res: Response) => {
 });
 
 userRouter.put("/user/:id?", async (req: Request, res: Response) => {
-  const badRequest = ErrorResponse(
+  const badRequest = ErrorResponseFactory(
     HttpStatusCode.BadRequest,
     ResponseMessages.BadRequest,
   );

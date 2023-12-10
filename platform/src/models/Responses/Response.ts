@@ -1,10 +1,10 @@
 import { ResponseCode } from "../../enums/ResponseCodes";
 
-export interface IBaseResponse {
+export type BaseResponse = {
   code: number;
-}
+};
 
-export function BaseResponse(code: ResponseCode): IBaseResponse {
+export function BaseResponseFactory(code: ResponseCode): BaseResponse {
   return {
     code,
   };

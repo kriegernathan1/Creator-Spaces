@@ -1,23 +1,22 @@
 import { ResponseCode } from "../../enums/ResponseCodes";
-import { ResponseMessages } from "../../enums/ResponseMessages";
-import { IJwtPayload } from "../../internal-services/User/UserService";
-import { BaseResponse, IBaseResponse } from "./Response";
-import { IErrorResponse } from "./errorResponse";
+import { BaseResponse, BaseResponseFactory } from "./Response";
+import { ErrorResponse } from "./errorResponse";
+import { PlatformResponse } from "./types";
 
-export interface ISigninResponse extends IBaseResponse {
-  token: string;
-}
+export type SigninResponse =
+  | (BaseResponse & {
+      token: string;
+    })
+  | PlatformResponse;
 
-export function SigninResponse(
+export function SigninResponseFactory(
   code: ResponseCode,
   token: string,
-): ISigninResponse {
+): SigninResponse {
   return {
-    ...BaseResponse(code),
+    ...BaseResponseFactory(code),
     token,
   };
 }
 
-export interface IUpdateUserResponse extends IBaseResponse {}
-
-export type UpdateUserResponse = IUpdateUserResponse | IErrorResponse;
+export type UpdateUserResponse = (BaseResponse & {}) | ErrorResponse;

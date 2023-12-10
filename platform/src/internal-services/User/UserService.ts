@@ -2,16 +2,15 @@ import { z } from "zod";
 import { IUserRepository } from "../../Repositories/UserRepository";
 import { HttpStatusCode } from "../../enums/ResponseCodes";
 import { ResponseMessages } from "../../enums/ResponseMessages";
-import { BaseResponse } from "../../models/Responses/Response";
+import { BaseResponseFactory } from "../../models/Responses/Response";
 import {
-  ISigninResponse,
-  IUpdateUserResponse,
   SigninResponse,
+  SigninResponseFactory,
   UpdateUserResponse,
 } from "../../models/Responses/UserResponses";
-import { ErrorResponse } from "../../models/Responses/errorResponse";
+import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
 import { PlatformResponse } from "../../models/Responses/types";
-import { NewUser, NewUserSchema, UpdateUser, User } from "../Database/types";
+import { NewUser, UpdateUser, User } from "../Database/types";
 import { ISecurityService, JwtPayload } from "../Security/SecurityService";
 
 export type SigninFields = {
@@ -27,15 +26,15 @@ export const SigninFieldsSchema = z.object({
 type RedactedUser = Omit<User, "password">;
 
 export interface IUserService {
-  signup(user: User): Promise<PlatformResponse>;
-  signin(fields: SigninFields): Promise<ISigninResponse | PlatformResponse>;
+  signup(user: NewUser): Promise<PlatformResponse>;
+  signin(fields: SigninFields): Promise<SigninResponse>;
   getUsers(namespace: string): Promise<RedactedUser[] | []>;
   getUser(userId: string): Promise<RedactedUser | undefined>;
   updateUser(
     userId: string,
     namespace: string,
     user: UpdateUser,
-  ): Promise<IUpdateUserResponse>;
+  ): Promise<UpdateUserResponse>;
 }
 
 type Dependencies = {
@@ -52,9 +51,9 @@ export class UserService implements IUserService {
     this.securityService = this.dependencies.securityService;
   }
 
-  async signup(user: User): Promise<PlatformResponse> {
+  async signup(user: NewUser): Promise<PlatformResponse> {
     if (this.securityService.isPasswordStrong(user.password) === false) {
-      return ErrorResponse(
+      return ErrorResponseFactory(
         HttpStatusCode.BadRequest,
         ResponseMessages.WeakPassword,
       );
@@ -68,20 +67,18 @@ export class UserService implements IUserService {
     const isSuccessfulAdd = await this.userRepository.addUser(user);
 
     if (isSuccessfulAdd) {
-      return BaseResponse(HttpStatusCode.Created);
+      return BaseResponseFactory(HttpStatusCode.Created);
     }
 
-    return ErrorResponse(
+    return ErrorResponseFactory(
       HttpStatusCode.InternalServerError,
       ResponseMessages.InternalServerError,
     );
   }
 
-  async signin(
-    fields: SigninFields,
-  ): Promise<ISigninResponse | PlatformResponse> {
+  async signin(fields: SigninFields): Promise<SigninResponse> {
     const user = await this.userRepository.getUser({ email: fields.email });
-    const genericErrorResponse = ErrorResponse(
+    const genericErrorResponse = ErrorResponseFactory(
       HttpStatusCode.BadRequest,
       ResponseMessages.UnableToFindUser,
     );
@@ -109,7 +106,7 @@ export class UserService implements IUserService {
     };
     const token = this.securityService.generateJwt(payload);
 
-    return SigninResponse(HttpStatusCode.Ok, token);
+    return SigninResponseFactory(HttpStatusCode.Ok, token);
   }
 
   async getUsers(namespace: string): Promise<RedactedUser[] | []> {
@@ -144,12 +141,12 @@ export class UserService implements IUserService {
     );
 
     if (result === false) {
-      return ErrorResponse(
+      return ErrorResponseFactory(
         HttpStatusCode.InternalServerError,
         ResponseMessages.InternalServerError,
       );
     }
 
-    return BaseResponse(HttpStatusCode.Ok);
+    return BaseResponseFactory(HttpStatusCode.Ok);
   }
 }

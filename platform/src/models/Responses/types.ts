@@ -1,4 +1,4 @@
-import { IBaseResponse } from "./Response";
-import { IErrorResponse } from "./errorResponse";
+import { BaseResponse } from "./Response";
+import { ErrorResponse, ErrorResponseFactory } from "./errorResponse";
 
-export type PlatformResponse = IErrorResponse | IBaseResponse;
+export type PlatformResponse = ErrorResponse | BaseResponse;

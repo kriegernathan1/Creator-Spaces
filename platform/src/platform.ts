@@ -3,12 +3,12 @@ import dotenv from "dotenv";
 import express, { Request } from "express";
 import { expressjwt } from "express-jwt";
 import { setupServices } from "./internal-services/ServiceManager";
-import { IJwtPayload } from "./internal-services/User/UserService";
 import postRouter from "./services/post/postService";
 import userRouter from "./services/user/UserService";
+import { JwtPayload } from "./internal-services/Security/SecurityService";
 
 export interface AuthenticatedRequest extends Request {
-  auth: IJwtPayload;
+  auth: JwtPayload;
 }
 
 dotenv.config();
@@ -23,7 +23,7 @@ app.use(
     secret: process.env.JWT_SECRET!,
     algorithms: ["HS256"],
     credentialsRequired: false,
-  })
+  }),
 );
 app.use(handleExpressJwtErrors);
 app.use("/user-service", userRouter);

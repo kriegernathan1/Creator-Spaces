@@ -1,18 +1,18 @@
 import { HttpStatusCode } from "../../enums/ResponseCodes";
 import { ResponseMessages } from "../../enums/ResponseMessages";
-import { IBaseResponse, BaseResponse } from "./Response";
+import { BaseResponse, BaseResponseFactory } from "./Response";
 
-export interface IErrorResponse extends IBaseResponse {
+export type ErrorResponse = BaseResponse & {
   error: {
     message: string;
   };
-}
+};
 
-export function ErrorResponse(
+export function ErrorResponseFactory(
   code: HttpStatusCode,
-  message: ResponseMessages
-): IErrorResponse {
-  const res = BaseResponse(code);
+  message: ResponseMessages,
+): ErrorResponse {
+  const res = BaseResponseFactory(code);
   return {
     ...res,
     error: {

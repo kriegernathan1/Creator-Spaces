@@ -1,23 +1,23 @@
 import { NextFunction, Request, Response } from "express";
 import { HttpStatusCode } from "./enums/ResponseCodes";
 import { ResponseMessages } from "./enums/ResponseMessages";
-import { JwtPayloadSchema } from "./internal-services/User/UserService";
-import { ErrorResponse } from "./models/Responses/errorResponse";
+import { ErrorResponseFactory } from "./models/Responses/errorResponse";
 import { AuthenticatedRequest } from "./platform";
+import { JwtPayloadSchema } from "./internal-services/Security/SecurityService";
 
 // WARNING: Middleware must load before routes are defined or error will be thrown by express
 
 export function isAuthorizedMiddleware(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) {
   if (!(req as any).auth) {
     res.json(
-      ErrorResponse(
+      ErrorResponseFactory(
         HttpStatusCode.Unauthorized,
-        ResponseMessages.UnauthorizedAction
-      )
+        ResponseMessages.UnauthorizedAction,
+      ),
     );
 
     next(HttpStatusCode.Unauthorized);
@@ -28,7 +28,10 @@ export function isAuthorizedMiddleware(
     false
   ) {
     res.json(
-      ErrorResponse(HttpStatusCode.BadRequest, ResponseMessages.BadRequest)
+      ErrorResponseFactory(
+        HttpStatusCode.BadRequest,
+        ResponseMessages.BadRequest,
+      ),
     );
     return;
   }
@@ -40,14 +43,14 @@ export const handleExpressJwtErrors = (
   err: Error,
   _: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   if (err.name === "UnauthorizedError") {
     res.json(
-      ErrorResponse(
+      ErrorResponseFactory(
         HttpStatusCode.Unauthorized,
-        ResponseMessages.UnauthorizedAction
-      )
+        ResponseMessages.UnauthorizedAction,
+      ),
     );
     next(HttpStatusCode.Unauthorized);
   }
