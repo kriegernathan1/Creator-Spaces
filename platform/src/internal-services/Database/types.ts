@@ -14,10 +14,10 @@ export interface Database {
 
 export interface UserTable {
   id: ColumnType<string, string | undefined, never>;
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   email: string;
-  createdAt: ColumnType<Date, never, never>;
+  created_at: ColumnType<Date, never, never>;
   namespace: string;
   password: string;
   role: "creator" | "user" | "moderator";
@@ -28,8 +28,8 @@ export type NewUser = Insertable<UserTable>;
 export type UpdateUser = Updateable<UserTable>;
 
 export const NewUserSchema = z.object({
-  firstName: z.string(),
-  lastName: z.string(),
+  first_name: z.string(),
+  last_name: z.string(),
   email: z.string().email(),
   namespace: z.string(),
   password: z.string(),
@@ -37,4 +37,4 @@ export const NewUserSchema = z.object({
   id: z.optional(z.string()),
 }) satisfies z.ZodType<NewUser>;
 
-export const UpdateUserSchema = z.object<UpdateUser>({});
+export const UpdateUserSchema = z.object({}) satisfies z.ZodType<UpdateUser>;

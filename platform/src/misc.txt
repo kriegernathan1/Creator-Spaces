@@ -1,15 +1,15 @@
-CREATE TABLE "user" (
+CREATE TABLE platform_user (
     id varchar(36) PRIMARY KEY, 
-    "firstName" varchar(80) NOT NULL, 
-    "lastName" varchar(80) NOT NULL, 
+    first_name varchar(80) NOT NULL, 
+    last_name varchar(80) NOT NULL, 
     email varchar(80) NOT NULL, 
     namespace varchar(80) NOT NULL, 
     password varchar(80) NOT NULL, 
     role varchar(80) NOT NULL, 
-    "createdAt" date DEFAULT now()
+    created_at date DEFAULT now()
 );
 
-ALTER TABLE "user" ALTER COLUMN "createdAt" TYPE timestamp;
+ALTER TABLE "user" ALTER COLUMN created_at TYPE timestamp;
 
 DELETE FROM "user";
 
