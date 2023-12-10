@@ -94,4 +94,20 @@ userRouter.put("/user/:id?", async (req: Request, res: Response) => {
   res.json(await userService.updateUser(userId, jwt.namespace, user));
 });
 
+userRouter.delete("/user/:id?", async (req: Request, res: Response) => {
+  const badRequest = ErrorResponseFactory(
+    HttpStatusCode.BadRequest,
+    ResponseMessages.BadRequest,
+  );
+
+  const userId = req.params["id"];
+  if (!userId) {
+    res.json(badRequest);
+    return;
+  }
+
+  const jwt = (req as AuthenticatedRequest).auth;
+  res.json(await userService.deleteUser(userId, jwt.namespace));
+});
+
 export default userRouter;

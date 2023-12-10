@@ -35,6 +35,7 @@ export interface IUserService {
     namespace: string,
     user: UpdateUser,
   ): Promise<UpdateUserResponse>;
+  deleteUser(userId: string, namespace: string): Promise<PlatformResponse>;
 }
 
 type Dependencies = {
@@ -139,6 +140,22 @@ export class UserService implements IUserService {
       namespace,
       user,
     );
+
+    if (result === false) {
+      return ErrorResponseFactory(
+        HttpStatusCode.InternalServerError,
+        ResponseMessages.InternalServerError,
+      );
+    }
+
+    return BaseResponseFactory(HttpStatusCode.Ok);
+  }
+
+  async deleteUser(
+    userId: string,
+    namespace: string,
+  ): Promise<PlatformResponse> {
+    const result = await this.userRepository.deleteUser(userId, namespace);
 
     if (result === false) {
       return ErrorResponseFactory(
