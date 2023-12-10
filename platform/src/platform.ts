@@ -34,7 +34,7 @@ export const isAuthorizedMiddleware = (
 
 const handleExpressJwtErrors = (
   err: Error,
-  req: Request,
+  _: Request,
   res: Response,
   next: NextFunction
 ) => {
