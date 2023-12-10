@@ -11,6 +11,7 @@ export interface Services {
 }
 
 let userService: UserService;
+let securityService: SecurityService;
 
 export function setupServices() {
   const connectionString = process.env.DEV_POSTGRESQL_DB_CONN_URL;
@@ -36,4 +37,4 @@ export function setupServices() {
   });
 }
 
-export { userService };
+export { userService, securityService };

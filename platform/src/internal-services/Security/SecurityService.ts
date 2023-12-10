@@ -1,4 +1,5 @@
 import { compare, hash } from "bcrypt";
+import { sign } from "jsonwebtoken";
 
 export interface ISecurityService {
   hashPassword(password: string): Promise<string>;
@@ -7,7 +8,10 @@ export interface ISecurityService {
     hashedPassword: string
   ): Promise<boolean>;
   isPasswordStrong(password: string): boolean;
+  generateJwt(plainPayload: any): string;
 }
+
+const JWT_TTL = "6H";
 
 interface Dependencies {}
 
@@ -29,5 +33,12 @@ export class SecurityService implements ISecurityService {
 
   isPasswordStrong(password: string): boolean {
     return true;
+  }
+
+  generateJwt(plainPayload: any): string {
+    const jwt = sign(plainPayload, process.env.JWT_SECRET!, {
+      expiresIn: JWT_TTL,
+    });
+    return jwt;
   }
 }

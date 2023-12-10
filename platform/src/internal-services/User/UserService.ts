@@ -9,6 +9,10 @@ import {
 import { HttpStatusCode } from "../../enums/ResponseCodes";
 import { PlatformResponse } from "../../models/Responses/types";
 import { ResponseMessages } from "../../enums/ResponseMessages";
+import {
+  ISigninResponse,
+  SigninResponse,
+} from "../../models/Responses/UserResponses";
 
 interface SignupFields extends NewUser {
   passwordRepeated: string;
@@ -19,9 +23,14 @@ interface SigninFields {
   password: string;
 }
 
+export interface IJwtPayload {
+  userId: string;
+  namespace: string;
+}
+
 export interface IUserService {
   signup(fields: SignupFields): Promise<PlatformResponse>;
-  signin(fields: SigninFields): Promise<PlatformResponse>;
+  signin(fields: SigninFields): Promise<ISigninResponse | PlatformResponse>;
 }
 
 interface Dependencies {
@@ -73,7 +82,9 @@ export class UserService implements IUserService {
     );
   }
 
-  async signin(fields: SigninFields): Promise<PlatformResponse> {
+  async signin(
+    fields: SigninFields
+  ): Promise<ISigninResponse | PlatformResponse> {
     const user = await this.userRepository.getUser({ email: fields.email });
     const genericErrorResponse = ErrorResponse(
       HttpStatusCode.BadRequest,
@@ -97,6 +108,12 @@ export class UserService implements IUserService {
       return genericErrorResponse;
     }
 
-    return BaseResponse(HttpStatusCode.Ok);
+    const payload: IJwtPayload = {
+      userId: user.id,
+      namespace: user.namespace,
+    };
+    const token = this.securityService.generateJwt(payload);
+
+    return SigninResponse(HttpStatusCode.Ok, token);
   }
 }

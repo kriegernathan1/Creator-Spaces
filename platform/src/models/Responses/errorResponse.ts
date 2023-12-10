@@ -1,3 +1,4 @@
+import { ResponseMessages } from "../../enums/ResponseMessages";
 import { IBaseResponse, BaseResponse } from "./Response";
 
 export interface IErrorResponse extends IBaseResponse {
@@ -6,7 +7,10 @@ export interface IErrorResponse extends IBaseResponse {
   };
 }
 
-export function ErrorResponse(code: number, message: string): IErrorResponse {
+export function ErrorResponse(
+  code: number,
+  message: ResponseMessages
+): IErrorResponse {
   const res = BaseResponse(code);
   return {
     ...res,
