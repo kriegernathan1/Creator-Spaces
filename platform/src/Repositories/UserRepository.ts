@@ -18,7 +18,7 @@ export interface IUserRepository {
   getUser(propertyValue: SupportedFetchProperties): Promise<User | undefined>;
   getUsers(namespace: string): Promise<User[] | []>;
   addUser(user: NewUser): Promise<boolean>;
-  deleteUser(userId: string): Promise<boolean>;
+  deleteUser(userId: string, namespace: string): Promise<boolean>;
   updateUser(
     userId: string,
     namespace: string,
@@ -91,9 +91,13 @@ export class UserRepository implements IUserRepository {
     }
   }
 
-  async deleteUser(userId: string): Promise<boolean> {
+  async deleteUser(userId: string, namespace: string): Promise<boolean> {
     try {
-      await this.client.deleteFrom("user").where("id", "=", userId);
+      await this.client
+        .deleteFrom("user")
+        .where("id", "=", userId)
+        .where("namespace", "=", namespace)
+        .execute();
       return true;
     } catch {
       return false;
