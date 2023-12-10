@@ -1,4 +1,4 @@
-import { NewUser } from "../Database/types";
+import { NewUser, NewUserSchema } from "../Database/types";
 import { IUserRepository } from "../../Repositories/UserRepository";
 import { ISecurityService } from "../Security/SecurityService";
 import { IBaseResponse, BaseResponse } from "../../models/Responses/Response";
@@ -13,15 +13,27 @@ import {
   ISigninResponse,
   SigninResponse,
 } from "../../models/Responses/UserResponses";
+import { z } from "zod";
 
 interface SignupFields extends NewUser {
   passwordRepeated: string;
 }
 
-interface SigninFields {
+export const SignUpFieldsSchema = NewUserSchema.and(
+  z.object({
+    passwordRepeated: z.string(),
+  })
+) satisfies z.ZodType<SignupFields>;
+
+export interface SigninFields {
   email: string;
   password: string;
 }
+
+export const SigninFieldsSchema = z.object({
+  email: z.string().email(),
+  password: z.string(),
+}) satisfies z.ZodType<SigninFields>;
 
 export interface IJwtPayload {
   userId: string;

@@ -1,6 +1,7 @@
 export enum ResponseMessages {
   // Generic Messages =========================================
   InternalServerError = "An internal server error occured",
+  BadRequest = "Invalid parameters passed",
   UnauthorizedAction = "That action requires propter authentication",
   // End Generic Messages =====================================
 
