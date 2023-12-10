@@ -15,7 +15,7 @@ import {
 } from "../../models/Responses/UserResponses";
 import { z } from "zod";
 
-interface SignupFields extends NewUser {
+export interface SignupFields extends NewUser {
   passwordRepeated: string;
 }
 

@@ -4,7 +4,9 @@ import { ResponseMessages } from "../../enums/ResponseMessages";
 import { userService } from "../../internal-services/ServiceManager";
 import {
   SignUpFieldsSchema,
+  SigninFields,
   SigninFieldsSchema,
+  SignupFields,
 } from "../../internal-services/User/UserService";
 import { ErrorResponse } from "../../models/Responses/errorResponse";
 
@@ -18,7 +20,7 @@ userRouter.post("/signup", async (req: Request, res: Response) => {
     return;
   }
 
-  res.json(await userService.signup(req.body));
+  res.json(await userService.signup(req.body as SignupFields));
 });
 
 userRouter.post("/signin", async (req: Request, res: Response) => {
@@ -29,7 +31,7 @@ userRouter.post("/signin", async (req: Request, res: Response) => {
     return;
   }
 
-  res.json(await userService.signin(req.body));
+  res.json(await userService.signin(req.body as SigninFields));
 });
 
 export default userRouter;
