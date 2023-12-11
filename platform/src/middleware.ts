@@ -1,11 +1,17 @@
 import { NextFunction, Request, Response } from "express";
 import { HttpStatusCode } from "./enums/ResponseCodes";
 import { ResponseMessages } from "./enums/ResponseMessages";
-import { JwtTokenSchema } from "./internal-services/Security/SecurityService";
+import {
+  JwtToken,
+  JwtTokenSchema,
+} from "./internal-services/Security/SecurityService";
 import { ErrorResponseFactory } from "./models/Responses/errorResponse";
-import { AuthenticatedRequest } from "./platform";
 
 // WARNING: Middleware must load before routes are defined or error will be thrown by express
+
+export interface AuthenticatedRequest extends Request {
+  auth: JwtToken;
+}
 
 export function isAuthorizedMiddleware(
   req: Request,

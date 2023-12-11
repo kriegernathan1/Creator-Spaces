@@ -7,10 +7,6 @@ import { handleExpressJwtErrors, isAuthorizedMiddleware } from "./middleware";
 import postRouter from "./services/post/postService";
 import userRouter from "./services/user/UserService";
 
-export interface AuthenticatedRequest extends Request {
-  auth: JwtToken;
-}
-
 dotenv.config();
 setupServices();
 
