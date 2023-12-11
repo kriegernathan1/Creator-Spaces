@@ -75,6 +75,17 @@ export class UserService implements IUserService {
     );
     user.password = hashedPassword;
 
+    const isUniqueEmail = !(await this.userRepository.getUserBy(
+      "email",
+      user.email,
+    ));
+    if (!isUniqueEmail) {
+      return ErrorResponseFactory(
+        HttpStatusCode.BadRequest,
+        ResponseMessages.UniqueEmailOnly,
+      );
+    }
+
     const isSuccessfulAdd = await this.userRepository.addUser(user);
 
     if (isSuccessfulAdd) {
@@ -88,7 +99,7 @@ export class UserService implements IUserService {
   }
 
   async signin(fields: SigninFields): Promise<SigninResponse> {
-    const user = await this.userRepository.getUser({ email: fields.email });
+    const user = await this.userRepository.getUserBy("email", fields.email);
     const genericErrorResponse = ErrorResponseFactory(
       HttpStatusCode.BadRequest,
       ResponseMessages.UnableToFindUser,
@@ -139,9 +150,7 @@ export class UserService implements IUserService {
   }
 
   async getUser(userId: string): Promise<RedactedUser | undefined> {
-    const user = await this.userRepository.getUser({
-      userId: userId,
-    });
+    const user = await this.userRepository.getUserBy("id", userId);
 
     if (user) {
       const { password, ...redactedUser } = user;
