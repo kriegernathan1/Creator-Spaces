@@ -12,9 +12,8 @@ import {
   SigninFields,
   SigninFieldsSchema,
 } from "../../internal-services/User/UserService";
+import { AuthenticatedRequest, isAuthorizedMiddleware } from "../../middleware";
 import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
-import { AuthenticatedRequest } from "../../routing";
-import { isAuthorizedMiddleware } from "../../middleware";
 
 const userRouter = Router({ mergeParams: true });
 
