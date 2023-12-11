@@ -22,6 +22,8 @@ export type JwtToken = JwtPayload & {
   exp: number;
 };
 
+export type EncodedJwtToken = string;
+
 export const JwtTokenSchema = z
   .object({
     userId: z.string(),

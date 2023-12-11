@@ -4,6 +4,8 @@ import { HttpStatusCode } from "../../enums/ResponseCodes";
 import { ResponseMessages } from "../../enums/ResponseMessages";
 import { BaseResponseFactory } from "../../models/Responses/Response";
 import {
+  RefreshTokenResponse,
+  RefreshTokenResponseFactory,
   SigninResponse,
   SigninResponseFactory,
   UpdateUserResponse,
@@ -11,17 +13,24 @@ import {
 import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
 import { PlatformResponse } from "../../models/Responses/types";
 import { NewUser, UpdateUser, User } from "../Database/types";
-import { ISecurityService, JwtPayload } from "../Security/SecurityService";
+import {
+  EncodedJwtToken,
+  ISecurityService,
+  JwtPayload,
+  JwtToken,
+} from "../Security/SecurityService";
 
 export type SigninFields = {
   email: string;
   password: string;
 };
 
-export const SigninFieldsSchema = z.object({
-  email: z.string().email(),
-  password: z.string(),
-}) satisfies z.ZodType<SigninFields>;
+export const SigninFieldsSchema = z
+  .object({
+    email: z.string().email(),
+    password: z.string(),
+  })
+  .strict() satisfies z.ZodType<SigninFields>;
 
 type RedactedUser = Omit<User, "password">;
 
@@ -36,6 +45,7 @@ export interface IUserService {
     user: UpdateUser,
   ): Promise<UpdateUserResponse>;
   deleteUser(userId: string, namespace: string): Promise<PlatformResponse>;
+  refreshToken(token: JwtToken): RefreshTokenResponse;
 }
 
 type Dependencies = {
@@ -108,6 +118,15 @@ export class UserService implements IUserService {
     const token = this.securityService.generateJwt(payload);
 
     return SigninResponseFactory(HttpStatusCode.Ok, token);
+  }
+
+  refreshToken(token: JwtToken): RefreshTokenResponse {
+    const newToken = this.securityService.generateJwt({
+      userId: token.userId,
+      namespace: token.namespace,
+    } as JwtPayload);
+
+    return RefreshTokenResponseFactory(HttpStatusCode.Ok, newToken);
   }
 
   async getUsers(namespace: string): Promise<RedactedUser[] | []> {

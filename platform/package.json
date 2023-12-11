@@ -4,7 +4,7 @@
   "description": "",
   "main": "platform.js",
   "scripts": {
-    "start": "ts-node src/platform.ts",
+    "start": "ts-node src/routing.ts",
     "build": "tsc",
     "serve": "node dist/index.js"
   },

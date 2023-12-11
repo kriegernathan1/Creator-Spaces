@@ -37,13 +37,13 @@ export class UserRepository implements IUserRepository {
   ): Promise<User | undefined> {
     if (propertyValue.email) {
       return await this.client
-        .selectFrom("user")
+        .selectFrom("platform_user")
         .selectAll()
         .where("email", "=", propertyValue.email)
         .executeTakeFirst();
     } else if (propertyValue.userId) {
       return await this.client
-        .selectFrom("user")
+        .selectFrom("platform_user")
         .selectAll()
         .where("id", "=", propertyValue.userId as string)
         .executeTakeFirst();
@@ -54,7 +54,7 @@ export class UserRepository implements IUserRepository {
 
   async getUsers(namespace: string): Promise<User[] | []> {
     return await this.client
-      .selectFrom("user")
+      .selectFrom("platform_user")
       .selectAll()
       .where("namespace", "=", namespace)
       .execute();
@@ -66,7 +66,7 @@ export class UserRepository implements IUserRepository {
     }
 
     try {
-      await this.client.insertInto("user").values(user).execute();
+      await this.client.insertInto("platform_user").values(user).execute();
       return true;
     } catch {
       return false;
@@ -80,7 +80,7 @@ export class UserRepository implements IUserRepository {
   ): Promise<boolean> {
     try {
       await this.client
-        .updateTable("user")
+        .updateTable("platform_user")
         .set(user)
         .where("id", "=", userId)
         .where("namespace", "=", namespace)
@@ -94,7 +94,7 @@ export class UserRepository implements IUserRepository {
   async deleteUser(userId: string, namespace: string): Promise<boolean> {
     try {
       await this.client
-        .deleteFrom("user")
+        .deleteFrom("platform_user")
         .where("id", "=", userId)
         .where("namespace", "=", namespace)
         .execute();

@@ -1,4 +1,5 @@
 import { ResponseCode } from "../../enums/ResponseCodes";
+import { EncodedJwtToken } from "../../internal-services/Security/SecurityService";
 import { BaseResponse, BaseResponseFactory } from "./Response";
 import { ErrorResponse } from "./errorResponse";
 import { PlatformResponse } from "./types";
@@ -11,7 +12,7 @@ export type SigninResponse =
 
 export function SigninResponseFactory(
   code: ResponseCode,
-  token: string,
+  token: EncodedJwtToken,
 ): SigninResponse {
   return {
     ...BaseResponseFactory(code),
@@ -20,3 +21,12 @@ export function SigninResponseFactory(
 }
 
 export type UpdateUserResponse = (BaseResponse & {}) | ErrorResponse;
+
+export type RefreshTokenResponse = SigninResponse;
+
+export function RefreshTokenResponseFactory(
+  code: ResponseCode,
+  token: EncodedJwtToken,
+): RefreshTokenResponse {
+  return SigninResponseFactory(code, token);
+}

@@ -25,7 +25,6 @@ userRouter.post("/signup", async (req: Request, res: Response) => {
         ResponseMessages.BadRequest,
       ),
     );
-
     return;
   }
 
@@ -56,6 +55,16 @@ userRouter.get(
     res.json({
       users,
     });
+  },
+);
+
+userRouter.get(
+  "/user/refreshToken",
+  isAuthorizedMiddleware,
+  async (req: Request, res: Response) => {
+    console.log("here");
+    const oldToken = (req as AuthenticatedRequest).auth;
+    res.json(userService.refreshToken(oldToken));
   },
 );
 
