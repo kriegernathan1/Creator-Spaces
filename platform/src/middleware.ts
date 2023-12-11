@@ -29,8 +29,8 @@ export function isAuthorizedMiddleware(
   ) {
     res.json(
       ErrorResponseFactory(
-        HttpStatusCode.BadRequest,
-        ResponseMessages.BadRequest,
+        HttpStatusCode.InternalServerError,
+        ResponseMessages.InternalServerError,
       ),
     );
     return;
