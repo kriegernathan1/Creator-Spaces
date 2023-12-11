@@ -17,10 +17,19 @@ export type JwtPayload = {
   namespace: string;
 };
 
-export const JwtPayloadSchema = z.object({
-  userId: z.string(),
-  namespace: z.string(),
-}) satisfies z.ZodType<JwtPayload>;
+export type JwtToken = JwtPayload & {
+  iat: number;
+  exp: number;
+};
+
+export const JwtTokenSchema = z
+  .object({
+    userId: z.string(),
+    namespace: z.string(),
+    iat: z.number(),
+    exp: z.number(),
+  })
+  .strict() satisfies z.ZodType<JwtToken>;
 
 const JWT_TTL = "6H";
 

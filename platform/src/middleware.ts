@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { HttpStatusCode } from "./enums/ResponseCodes";
 import { ResponseMessages } from "./enums/ResponseMessages";
+import { JwtTokenSchema } from "./internal-services/Security/SecurityService";
 import { ErrorResponseFactory } from "./models/Responses/errorResponse";
 import { AuthenticatedRequest } from "./platform";
-import { JwtPayloadSchema } from "./internal-services/Security/SecurityService";
 
 // WARNING: Middleware must load before routes are defined or error will be thrown by express
 
@@ -23,10 +23,10 @@ export function isAuthorizedMiddleware(
     next(HttpStatusCode.Unauthorized);
   }
 
-  if (
-    JwtPayloadSchema.safeParse((req as AuthenticatedRequest).auth).success ===
-    false
-  ) {
+  const jwtParseResult = JwtTokenSchema.safeParse(
+    (req as AuthenticatedRequest).auth,
+  );
+  if (jwtParseResult.success === false) {
     res.json(
       ErrorResponseFactory(
         HttpStatusCode.InternalServerError,
@@ -53,5 +53,14 @@ export const handleExpressJwtErrors = (
       ),
     );
     next(HttpStatusCode.Unauthorized);
+    return;
   }
+
+  console.warn("Unhandled error from jwt Express");
+  res.json(
+    ErrorResponseFactory(
+      HttpStatusCode.InternalServerError,
+      ResponseMessages.InternalServerError,
+    ),
+  );
 };

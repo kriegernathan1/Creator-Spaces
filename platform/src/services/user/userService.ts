@@ -14,6 +14,7 @@ import {
 } from "../../internal-services/User/UserService";
 import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
 import { AuthenticatedRequest } from "../../platform";
+import { isAuthorizedMiddleware } from "../../middleware";
 
 const userRouter = Router({ mergeParams: true });
 
@@ -46,68 +47,84 @@ userRouter.post("/signin", async (req: Request, res: Response) => {
   res.json(await userService.signin(req.body as SigninFields));
 });
 
-userRouter.get("/users", async (req: Request, res: Response) => {
-  const jwt = (req as AuthenticatedRequest).auth;
-  const users = await userService.getUsers(jwt.namespace);
+userRouter.get(
+  "/users",
+  isAuthorizedMiddleware,
+  async (req: Request, res: Response) => {
+    const jwt = (req as AuthenticatedRequest).auth;
+    const users = await userService.getUsers(jwt.namespace);
 
-  res.json({
-    users,
-  });
-});
+    res.json({
+      users,
+    });
+  },
+);
 
-userRouter.get("/user/:id?", async (req: Request, res: Response) => {
-  const userId = req.params["id"];
-  if (!userId) {
-    res.json(
-      ErrorResponseFactory(
-        HttpStatusCode.BadRequest,
-        ResponseMessages.BadRequest,
-      ),
+userRouter.get(
+  "/user/:id?",
+  isAuthorizedMiddleware,
+  async (req: Request, res: Response) => {
+    const userId = req.params["id"];
+    if (!userId) {
+      res.json(
+        ErrorResponseFactory(
+          HttpStatusCode.BadRequest,
+          ResponseMessages.BadRequest,
+        ),
+      );
+      return;
+    }
+
+    const user = await userService.getUser(userId);
+    res.json({
+      user: user ?? {},
+    });
+  },
+);
+
+userRouter.put(
+  "/user/:id?",
+  isAuthorizedMiddleware,
+  async (req: Request, res: Response) => {
+    const badRequest = ErrorResponseFactory(
+      HttpStatusCode.BadRequest,
+      ResponseMessages.BadRequest,
     );
-    return;
-  }
 
-  const user = await userService.getUser(userId);
-  res.json({
-    user: user ?? {},
-  });
-});
+    const userId = req.params["id"];
+    if (!userId) {
+      res.json(badRequest);
+      return;
+    }
+    if (UpdateUserSchema.safeParse(req.body).success === false) {
+      res.json(badRequest);
+      return;
+    }
 
-userRouter.put("/user/:id?", async (req: Request, res: Response) => {
-  const badRequest = ErrorResponseFactory(
-    HttpStatusCode.BadRequest,
-    ResponseMessages.BadRequest,
-  );
+    const jwt = (req as AuthenticatedRequest).auth;
+    const user = req.body as UpdateUser;
+    res.json(await userService.updateUser(userId, jwt.namespace, user));
+  },
+);
 
-  const userId = req.params["id"];
-  if (!userId) {
-    res.json(badRequest);
-    return;
-  }
-  if (UpdateUserSchema.safeParse(req.body).success === false) {
-    res.json(badRequest);
-    return;
-  }
+userRouter.delete(
+  "/user/:id?",
+  isAuthorizedMiddleware,
+  async (req: Request, res: Response) => {
+    const badRequest = ErrorResponseFactory(
+      HttpStatusCode.BadRequest,
+      ResponseMessages.BadRequest,
+    );
 
-  const jwt = (req as AuthenticatedRequest).auth;
-  const user = req.body as UpdateUser;
-  res.json(await userService.updateUser(userId, jwt.namespace, user));
-});
+    const userId = req.params["id"];
+    if (!userId) {
+      res.json(badRequest);
+      return;
+    }
 
-userRouter.delete("/user/:id?", async (req: Request, res: Response) => {
-  const badRequest = ErrorResponseFactory(
-    HttpStatusCode.BadRequest,
-    ResponseMessages.BadRequest,
-  );
-
-  const userId = req.params["id"];
-  if (!userId) {
-    res.json(badRequest);
-    return;
-  }
-
-  const jwt = (req as AuthenticatedRequest).auth;
-  res.json(await userService.deleteUser(userId, jwt.namespace));
-});
+    const jwt = (req as AuthenticatedRequest).auth;
+    res.json(await userService.deleteUser(userId, jwt.namespace));
+  },
+);
 
 export default userRouter;
