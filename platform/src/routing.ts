@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
-import express, { Request } from "express";
+import express from "express";
 import { expressjwt } from "express-jwt";
-import { JwtToken } from "./internal-services/Security/SecurityService";
 import { setupServices } from "./internal-services/ServiceManager";
 import { handleExpressJwtErrors, isAuthorizedMiddleware } from "./middleware";
 import postRouter from "./services/post/postService";
