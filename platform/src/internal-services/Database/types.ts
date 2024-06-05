@@ -20,7 +20,7 @@ export interface UserTable {
   created_at: ColumnType<Date, never, never>;
   namespace: string;
   password: ColumnType<string, string, string | undefined>;
-  role: "creator" | "user" | "moderator";
+  role: "creator" | "user" | "moderator" | "platform_admin";
 }
 
 export type User = Selectable<UserTable>;
@@ -46,7 +46,9 @@ export const UpdateUserSchema = z
     email: z.optional(z.string().email()),
     namespace: z.optional(z.string()),
     password: z.optional(z.string()),
-    role: z.optional(z.enum(["creator", "user", "moderator"])),
+    role: z.optional(
+      z.enum(["creator", "user", "moderator", "platform_admin"]),
+    ),
     id: z.optional(z.optional(z.string())),
   })
   .strict() satisfies z.ZodType<UpdateUser>;
