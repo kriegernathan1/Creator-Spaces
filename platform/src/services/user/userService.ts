@@ -12,7 +12,10 @@ import {
   SigninFields,
   SigninFieldsSchema,
 } from "../../internal-services/User/UserService";
-import { AuthenticatedRequest, isAuthorizedMiddleware } from "../../middleware";
+import {
+  AuthenticatedRequest,
+  isAuthorizedMiddlewareFactory,
+} from "../../middleware";
 import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
 
 const userRouter = Router({ mergeParams: true });
@@ -47,7 +50,7 @@ userRouter.post("/signin", async (req: Request, res: Response) => {
 
 userRouter.get(
   "/users",
-  isAuthorizedMiddleware,
+  isAuthorizedMiddlewareFactory(["platform_admin"]),
   async (req: Request, res: Response) => {
     const jwt = (req as AuthenticatedRequest).auth;
     const users = await userService.getUsers(jwt.namespace);
@@ -60,7 +63,7 @@ userRouter.get(
 
 userRouter.get(
   "/user/refreshToken",
-  isAuthorizedMiddleware,
+  isAuthorizedMiddlewareFactory(["platform_admin"]),
   async (req: Request, res: Response) => {
     console.log("here");
     const oldToken = (req as AuthenticatedRequest).auth;
@@ -70,7 +73,7 @@ userRouter.get(
 
 userRouter.get(
   "/user/:id?",
-  isAuthorizedMiddleware,
+  isAuthorizedMiddlewareFactory(["platform_admin"]),
   async (req: Request, res: Response) => {
     const userId = req.params["id"];
     if (!userId) {
@@ -92,7 +95,7 @@ userRouter.get(
 
 userRouter.put(
   "/user/:id?",
-  isAuthorizedMiddleware,
+  isAuthorizedMiddlewareFactory(["platform_admin"]),
   async (req: Request, res: Response) => {
     const badRequest = ErrorResponseFactory(
       HttpStatusCode.BadRequest,
@@ -117,7 +120,7 @@ userRouter.put(
 
 userRouter.delete(
   "/user/:id?",
-  isAuthorizedMiddleware,
+  isAuthorizedMiddlewareFactory(["platform_admin"]),
   async (req: Request, res: Response) => {
     const badRequest = ErrorResponseFactory(
       HttpStatusCode.BadRequest,

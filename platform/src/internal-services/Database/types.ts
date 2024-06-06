@@ -12,6 +12,16 @@ export interface Database {
   platform_user: UserTable;
 }
 
+// Allows type checking at runtime with Zod from union types
+export const ALL_ROLES = [
+  "creator",
+  "user",
+  "moderator",
+  "platform_admin",
+] as const;
+type RoleTuple = typeof ALL_ROLES;
+type ROLES = RoleTuple[number];
+
 export interface UserTable {
   id: ColumnType<string, string | undefined, never>;
   first_name: string;
@@ -20,7 +30,7 @@ export interface UserTable {
   created_at: ColumnType<Date, never, never>;
   namespace: string;
   password: ColumnType<string, string, string | undefined>;
-  role: "creator" | "user" | "moderator" | "platform_admin";
+  role: ROLES;
 }
 
 export type User = Selectable<UserTable>;
@@ -34,7 +44,7 @@ export const NewUserSchema = z
     email: z.string().email(),
     namespace: z.string(),
     password: z.string(),
-    role: z.enum(["creator", "user", "moderator"]),
+    role: z.enum(ALL_ROLES),
     id: z.optional(z.string()),
   })
   .strict() satisfies z.ZodType<NewUser>;
@@ -46,9 +56,7 @@ export const UpdateUserSchema = z
     email: z.optional(z.string().email()),
     namespace: z.optional(z.string()),
     password: z.optional(z.string()),
-    role: z.optional(
-      z.enum(["creator", "user", "moderator", "platform_admin"]),
-    ),
+    role: z.optional(z.enum(ALL_ROLES)),
     id: z.optional(z.optional(z.string())),
   })
   .strict() satisfies z.ZodType<UpdateUser>;

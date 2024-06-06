@@ -2,7 +2,10 @@ import dotenv from "dotenv";
 import express from "express";
 import { expressjwt } from "express-jwt";
 import { setupServices } from "./internal-services/ServiceManager";
-import { handleExpressJwtErrors, isAuthorizedMiddleware } from "./middleware";
+import {
+  handleExpressJwtErrors,
+  isAuthorizedMiddlewareFactory,
+} from "./middleware";
 import postRouter from "./services/post/postService";
 import userRouter from "./services/user/UserService";
 
@@ -22,7 +25,7 @@ app.use(
 );
 app.use(handleExpressJwtErrors);
 app.use("/user-service", userRouter);
-app.use("/post-service", isAuthorizedMiddleware, postRouter);
+app.use("/post-service", isAuthorizedMiddlewareFactory(), postRouter);
 
 app.listen(PORT, () => {
   console.log(`Lisening on port ${PORT}`);

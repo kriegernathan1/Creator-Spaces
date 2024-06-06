@@ -1,6 +1,7 @@
 import { compare, hash } from "bcrypt";
 import { sign } from "jsonwebtoken";
 import { z } from "zod";
+import { ALL_ROLES, NewUserSchema, UserTable } from "../Database/types";
 
 export interface ISecurityService {
   hashPassword(password: string): Promise<string>;
@@ -15,6 +16,7 @@ export interface ISecurityService {
 export type JwtPayload = {
   userId: string;
   namespace: string;
+  role: UserTable["role"];
 };
 
 export type JwtToken = JwtPayload & {
@@ -28,6 +30,7 @@ export const JwtTokenSchema = z
   .object({
     userId: z.string(),
     namespace: z.string(),
+    role: z.enum(ALL_ROLES),
     iat: z.number(),
     exp: z.number(),
   })

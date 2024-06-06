@@ -125,6 +125,7 @@ export class UserService implements IUserService {
     const payload: JwtPayload = {
       userId: user.id,
       namespace: user.namespace,
+      role: user.role,
     };
     const token = this.securityService.generateJwt(payload);
 

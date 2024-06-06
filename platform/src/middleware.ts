@@ -6,6 +6,7 @@ import {
   JwtTokenSchema,
 } from "./internal-services/Security/SecurityService";
 import { ErrorResponseFactory } from "./models/Responses/errorResponse";
+import { UserTable } from "./internal-services/Database/types";
 
 // WARNING: Middleware must load before routes are defined or error will be thrown by express
 
@@ -13,36 +14,48 @@ export interface AuthenticatedRequest extends Request {
   auth: JwtToken;
 }
 
-export function isAuthorizedMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction,
+export function isAuthorizedMiddlewareFactory(
+  authorizedRoles: UserTable["role"][] = [],
 ) {
-  if (!(req as any).auth) {
-    res.json(
-      ErrorResponseFactory(
-        HttpStatusCode.Unauthorized,
-        ResponseMessages.UnauthorizedAction,
-      ),
+  return function (req: Request, res: Response, next: NextFunction) {
+    if (!(req as any).auth) {
+      res.json(
+        ErrorResponseFactory(
+          HttpStatusCode.Unauthorized,
+          ResponseMessages.UnauthorizedAction,
+        ),
+      );
+
+      next(HttpStatusCode.Unauthorized);
+    }
+
+    const jwtParseResult = JwtTokenSchema.safeParse(
+      (req as AuthenticatedRequest).auth,
     );
+    if (jwtParseResult.success === false) {
+      res.json(
+        ErrorResponseFactory(
+          HttpStatusCode.InternalServerError,
+          ResponseMessages.InternalServerError,
+        ),
+      );
+      return;
+    }
 
-    next(HttpStatusCode.Unauthorized);
-  }
+    const jwt = jwtParseResult.data;
+    if (authorizedRoles.includes(jwt.role) === false) {
+      res.json(
+        ErrorResponseFactory(
+          HttpStatusCode.Unauthorized,
+          ResponseMessages.UnauthorizedAction,
+        ),
+      );
 
-  const jwtParseResult = JwtTokenSchema.safeParse(
-    (req as AuthenticatedRequest).auth,
-  );
-  if (jwtParseResult.success === false) {
-    res.json(
-      ErrorResponseFactory(
-        HttpStatusCode.InternalServerError,
-        ResponseMessages.InternalServerError,
-      ),
-    );
-    return;
-  }
+      return;
+    }
 
-  next();
+    next();
+  };
 }
 
 export const handleExpressJwtErrors = (
