@@ -42,7 +42,7 @@ const Permissions: Permission[] = [
     service: "user",
     description: "Delete individual user other than self",
   },
-];
+] as const;
 
 export type Role = {
   name: UserTable["role"];

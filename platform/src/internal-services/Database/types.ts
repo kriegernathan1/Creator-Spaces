@@ -19,8 +19,7 @@ export const ALL_ROLES = [
   "moderator",
   "platform_admin",
 ] as const;
-type RoleTuple = typeof ALL_ROLES;
-type ROLES = RoleTuple[number];
+type ROLES = (typeof ALL_ROLES)[number];
 
 export interface UserTable {
   id: ColumnType<string, string | undefined, never>;
