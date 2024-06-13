@@ -92,8 +92,9 @@ userRouter.get(
   },
 );
 
+const USER_ID_PARAM = "id";
 userRouter.put(
-  "/user/:id?",
+  `/user/:${USER_ID_PARAM}?`,
   isAuthorizedMiddlewareFactory(["platform_admin"]),
   async (req: Request, res: Response) => {
     const badRequest = ErrorResponseFactory(
@@ -101,7 +102,7 @@ userRouter.put(
       ResponseMessages.BadRequest,
     );
 
-    const userId = req.params["id"];
+    const userId = req.params[USER_ID_PARAM];
     if (!userId) {
       res.json(badRequest);
       return;
