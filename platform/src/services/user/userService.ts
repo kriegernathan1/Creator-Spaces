@@ -65,7 +65,6 @@ userRouter.get(
   "/user/refreshToken",
   isAuthorizedMiddlewareFactory(["platform_admin"]),
   async (req: Request, res: Response) => {
-    console.log("here");
     const oldToken = (req as AuthenticatedRequest).auth;
     res.json(userService.refreshToken(oldToken));
   },
