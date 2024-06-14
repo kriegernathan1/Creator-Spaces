@@ -6,7 +6,7 @@ type Permission = {
   description: string;
 };
 
-const Permissions: Permission[] = [
+const Permissions = [
   {
     name: "get_user_self",
     service: "user",
@@ -44,9 +44,11 @@ const Permissions: Permission[] = [
   },
 ] as const;
 
+export type Permissions = (typeof Permissions)[number]["name"][];
+
 export type Role = {
   name: UserTable["role"];
-  permissions: string[];
+  permissions: Permissions;
 };
 
 const adminPermissions = Permissions.map((p) => p.name);
