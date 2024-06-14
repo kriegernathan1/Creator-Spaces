@@ -38,22 +38,21 @@ const Permissions = [
   },
 ] as const;
 
-export type Permissions = (typeof Permissions)[number]["name"][];
+export type Permission = (typeof Permissions)[number]["name"];
 
-export type Role = {
-  name: UserTable["role"];
-  permissions: Permissions;
+export type RolePermissionMap = {
+  [Property in UserTable["role"]]: {
+    permissions: Permission[];
+  };
 };
 
 const adminPermissions = Permissions.map((p) => p.name);
 
-export const Roles: Role[] = [
-  {
-    name: "platform_admin",
+export const ActiveRoles: RolePermissionMap = {
+  platform_admin: {
     permissions: adminPermissions,
   },
-  {
-    name: "user",
+  user: {
     permissions: ["get_user_self", "update_user_self", "delete_user_self"],
   },
-];
+} as const;

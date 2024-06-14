@@ -13,5 +13,7 @@
     {
       "column": 80,
     }
-   ]
+   ],
+   "editor.formatOnSave": true,
+   "source.organizeImports": "explicit"
 }

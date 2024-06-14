@@ -13,12 +13,7 @@ export interface Database {
 }
 
 // Allows type checking at runtime with Zod from union types
-export const ALL_ROLES = [
-  "creator",
-  "user",
-  "moderator",
-  "platform_admin",
-] as const;
+export const ALL_ROLES = ["user", "platform_admin"] as const;
 type ROLES = (typeof ALL_ROLES)[number];
 
 export interface UserTable {

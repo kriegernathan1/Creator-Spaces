@@ -50,7 +50,7 @@ userRouter.post("/signin", async (req: Request, res: Response) => {
 
 userRouter.get(
   "/users",
-  isAuthorizedMiddlewareFactory(["platform_admin"]),
+  isAuthorizedMiddlewareFactory(["get_users"]),
   async (req: Request, res: Response) => {
     const jwt = (req as AuthenticatedRequest).auth;
     const users = await userService.getUsers(jwt.namespace);
@@ -63,7 +63,7 @@ userRouter.get(
 
 userRouter.get(
   "/user/refreshToken",
-  isAuthorizedMiddlewareFactory(["platform_admin"]),
+  isAuthorizedMiddlewareFactory(),
   async (req: Request, res: Response) => {
     const oldToken = (req as AuthenticatedRequest).auth;
     res.json(userService.refreshToken(oldToken));
@@ -72,7 +72,7 @@ userRouter.get(
 
 userRouter.get(
   "/user/:id?",
-  isAuthorizedMiddlewareFactory(["platform_admin"]),
+  isAuthorizedMiddlewareFactory(["get_user"]),
   async (req: Request, res: Response) => {
     const userId = req.params["id"];
     if (!userId) {
@@ -95,15 +95,15 @@ userRouter.get(
 const USER_ID_PARAM = "id";
 userRouter.put(
   `/user/:${USER_ID_PARAM}?`,
-  isAuthorizedMiddlewareFactory(["platform_admin"]),
+  isAuthorizedMiddlewareFactory(["update_user", "update_user_self"]),
   async (req: Request, res: Response) => {
     const badRequest = ErrorResponseFactory(
       HttpStatusCode.BadRequest,
       ResponseMessages.BadRequest,
     );
 
-    const userId = req.params[USER_ID_PARAM];
-    if (!userId) {
+    const queriedUserId = req.params[USER_ID_PARAM];
+    if (!queriedUserId) {
       res.json(badRequest);
       return;
     }
@@ -114,13 +114,13 @@ userRouter.put(
 
     const jwt = (req as AuthenticatedRequest).auth;
     const user = req.body as UpdateUser;
-    res.json(await userService.updateUser(userId, jwt.namespace, user));
+    res.json(await userService.updateUser(queriedUserId, jwt.namespace, user));
   },
 );
 
 userRouter.delete(
   "/user/:id?",
-  isAuthorizedMiddlewareFactory(["platform_admin"]),
+  isAuthorizedMiddlewareFactory(["delete_user", "delete_user_self"]),
   async (req: Request, res: Response) => {
     const badRequest = ErrorResponseFactory(
       HttpStatusCode.BadRequest,

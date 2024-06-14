@@ -2,7 +2,8 @@ export enum ResponseMessages {
   // Generic Messages =========================================
   InternalServerError = "An internal server error occured",
   BadRequest = "Invalid parameters passed",
-  UnauthorizedAction = "Action requires authentication",
+  UnauthenticatedAction = "Action requires authentication",
+  UnauthorizedAction = "Action not authorized",
   // End Generic Messages =====================================
 
   // User Service ===================================
