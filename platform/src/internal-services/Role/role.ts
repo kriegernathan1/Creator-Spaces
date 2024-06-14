@@ -1,11 +1,5 @@
 import { UserTable } from "../Database/types";
 
-type Permission = {
-  name: string;
-  service: string;
-  description: string;
-};
-
 const Permissions = [
   {
     name: "get_user_self",
