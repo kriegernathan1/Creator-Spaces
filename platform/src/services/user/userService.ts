@@ -62,7 +62,7 @@ userRouter.post("/signin", async (req: Request, res: Response) => {
     return;
   }
 
-  res.json(await userService.signin(req.body as SigninFields));
+  CreateResponse(res, await userService.signin(req.body as SigninFields));
 });
 
 userRouter.get(
@@ -111,9 +111,7 @@ userRouter.get(
     }
 
     const user = await userService.getUser(queriedUserId ?? userJwt.userId);
-    res.json({
-      user: user ?? {},
-    });
+    res.json(user);
   },
 );
 
