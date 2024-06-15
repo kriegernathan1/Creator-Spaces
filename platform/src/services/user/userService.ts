@@ -141,24 +141,45 @@ userRouter.put(
   `/user/:${UPDATE_USER_ID_ROUTE_PARAM}?`,
   isAuthorizedMiddlewareFactory(["update_user", "update_user_self"]),
   async (req: Request, res: Response) => {
+    const authenticatedUserJwt = (req as AuthenticatedRequest).auth;
+    const authenticatedUserPermissions =
+      RolePermissionMap[authenticatedUserJwt.role].permissions;
+    const queriedUserId = req.params[UPDATE_USER_ID_ROUTE_PARAM];
+
     const badRequest = ErrorResponseFactory(
       HttpStatusCode.BadRequest,
       ResponseMessages.BadRequest,
     );
 
-    const queriedUserId = req.params[UPDATE_USER_ID_ROUTE_PARAM];
-    if (!queriedUserId) {
-      CreateResponse(res, badRequest);
+    if (
+      authenticatedUserPermissions.includes("update_user") === false &&
+      queriedUserId !== undefined &&
+      queriedUserId !== authenticatedUserJwt.userId
+    ) {
+      CreateResponse(
+        res,
+        ErrorResponseFactory(
+          HttpStatusCode.Forbidden,
+          ResponseMessages.UnauthorizedAction,
+        ),
+      );
       return;
     }
+
     if (UpdateUserSchema.safeParse(req.body).success === false) {
       CreateResponse(res, badRequest);
       return;
     }
 
-    const jwt = (req as AuthenticatedRequest).auth;
     const user = req.body as UpdateUser;
-    res.json(await userService.updateUser(queriedUserId, jwt.namespace, user));
+    CreateResponse(
+      res,
+      await userService.updateUser(
+        queriedUserId ?? authenticatedUserJwt.userId,
+        authenticatedUserJwt.namespace,
+        user,
+      ),
+    );
   },
 );
 
@@ -167,19 +188,33 @@ userRouter.delete(
   `/user/:${DELETE_USER_ID_ROUTE_PARAM}?`,
   isAuthorizedMiddlewareFactory(["delete_user", "delete_user_self"]),
   async (req: Request, res: Response) => {
-    const badRequest = ErrorResponseFactory(
-      HttpStatusCode.BadRequest,
-      ResponseMessages.BadRequest,
-    );
+    const queriedUserId = req.params[DELETE_USER_ID_ROUTE_PARAM];
+    const authenticatedUserJwt = (req as AuthenticatedRequest).auth;
+    const authenticatedUserPermissions =
+      RolePermissionMap[authenticatedUserJwt.role].permissions;
 
-    const userId = req.params[DELETE_USER_ID_ROUTE_PARAM];
-    if (!userId) {
-      CreateResponse(res, badRequest);
+    if (
+      authenticatedUserPermissions.includes("delete_user") === false &&
+      queriedUserId !== undefined &&
+      queriedUserId !== authenticatedUserJwt.userId
+    ) {
+      CreateResponse(
+        res,
+        ErrorResponseFactory(
+          HttpStatusCode.Forbidden,
+          ResponseMessages.UnauthorizedAction,
+        ),
+      );
       return;
     }
 
-    const jwt = (req as AuthenticatedRequest).auth;
-    res.json(await userService.deleteUser(userId, jwt.namespace));
+    CreateResponse(
+      res,
+      await userService.deleteUser(
+        queriedUserId ?? authenticatedUserJwt.userId,
+        authenticatedUserJwt.namespace,
+      ),
+    );
   },
 );
 
