@@ -2,7 +2,7 @@ import { Response } from "express";
 import { ResponseCode } from "../../enums/ResponseCodes";
 
 export type BaseResponse = {
-  code: number;
+  code: ResponseCode;
 };
 
 export function BaseResponseFactory(code: ResponseCode): BaseResponse {
