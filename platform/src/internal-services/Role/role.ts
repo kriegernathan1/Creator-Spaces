@@ -17,6 +17,11 @@ const Permissions = [
     description: "Fetch all users details",
   },
   {
+    name: "create_user",
+    service: "user",
+    description: "Create any user",
+  },
+  {
     name: "update_user",
     service: "user",
     description: "Fetch all users details",

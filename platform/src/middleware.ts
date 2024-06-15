@@ -30,6 +30,7 @@ export function isAuthorizedMiddlewareFactory(
       );
 
       next(HttpStatusCode.Unauthorized);
+      return;
     }
 
     const jwtParseResult = JwtTokenSchema.safeParse(

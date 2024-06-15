@@ -33,7 +33,20 @@ userRouter.post("/signup", async (req: Request, res: Response) => {
     return;
   }
 
-  res.json(await userService.signup(req.body as NewUser));
+  const newUserFields = req.body as NewUser;
+  const allowedPublicAssignedRoles = ["user"];
+  if (!allowedPublicAssignedRoles.includes(newUserFields.role)) {
+    CreateResponse(
+      res,
+      ErrorResponseFactory(
+        HttpStatusCode.Forbidden,
+        ResponseMessages.UnauthorizedAction,
+      ),
+    );
+    return;
+  }
+
+  CreateResponse(res, await userService.signup(req.body as NewUser));
 });
 
 userRouter.post("/signin", async (req: Request, res: Response) => {
@@ -94,6 +107,25 @@ userRouter.get(
     res.json({
       user: user ?? {},
     });
+  },
+);
+
+userRouter.post(
+  `/user/create`,
+  isAuthorizedMiddlewareFactory(["create_user"]),
+  async (req: Request, res: Response) => {
+    if (NewUserSchema.safeParse(req.body).success === false) {
+      CreateResponse(
+        res,
+        ErrorResponseFactory(
+          HttpStatusCode.BadRequest,
+          ResponseMessages.BadRequest,
+        ),
+      );
+      return;
+    }
+
+    CreateResponse(res, await userService.signup(req.body as NewUser));
   },
 );
 
