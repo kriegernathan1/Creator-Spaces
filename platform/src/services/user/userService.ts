@@ -73,11 +73,12 @@ userRouter.get(
   },
 );
 
+const FETCH_USER_ID_ROUTE_PARAM = "id";
 userRouter.get(
-  "/user/:id?",
+  `/user/:${FETCH_USER_ID_ROUTE_PARAM}?`,
   isAuthorizedMiddlewareFactory(["get_user"]),
   async (req: Request, res: Response) => {
-    const userId = req.params["id"];
+    const userId = req.params[FETCH_USER_ID_ROUTE_PARAM];
     if (!userId) {
       CreateResponse(
         res,
@@ -96,9 +97,9 @@ userRouter.get(
   },
 );
 
-const USER_ID_PARAM = "id";
+const UPDATE_USER_ID_ROUTE_PARAM = "id";
 userRouter.put(
-  `/user/:${USER_ID_PARAM}?`,
+  `/user/:${UPDATE_USER_ID_ROUTE_PARAM}?`,
   isAuthorizedMiddlewareFactory(["update_user", "update_user_self"]),
   async (req: Request, res: Response) => {
     const badRequest = ErrorResponseFactory(
@@ -106,7 +107,7 @@ userRouter.put(
       ResponseMessages.BadRequest,
     );
 
-    const queriedUserId = req.params[USER_ID_PARAM];
+    const queriedUserId = req.params[UPDATE_USER_ID_ROUTE_PARAM];
     if (!queriedUserId) {
       CreateResponse(res, badRequest);
       return;
@@ -122,8 +123,9 @@ userRouter.put(
   },
 );
 
+const DELETE_USER_ID_ROUTE_PARAM = "id";
 userRouter.delete(
-  "/user/:id?",
+  `/user/:${DELETE_USER_ID_ROUTE_PARAM}?`,
   isAuthorizedMiddlewareFactory(["delete_user", "delete_user_self"]),
   async (req: Request, res: Response) => {
     const badRequest = ErrorResponseFactory(
@@ -131,7 +133,7 @@ userRouter.delete(
       ResponseMessages.BadRequest,
     );
 
-    const userId = req.params["id"];
+    const userId = req.params[DELETE_USER_ID_ROUTE_PARAM];
     if (!userId) {
       CreateResponse(res, badRequest);
       return;
