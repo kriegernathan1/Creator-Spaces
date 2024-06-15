@@ -21,7 +21,7 @@ export class DatabaseService implements IDatabaseService {
     this.setupConnectionPool();
   }
 
-  setupConnectionPool() {
+  private setupConnectionPool() {
     const dialect = new PostgresDialect({
       pool: new Pool({
         connectionString: this.dependencies.connectionString,
