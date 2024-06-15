@@ -7,7 +7,7 @@ import {
   isAuthorizedMiddlewareFactory,
 } from "./middleware";
 import postRouter from "./services/post/postService";
-import userRouter from "./services/user/UserService";
+import userRouter from "./services/user/userService";
 
 dotenv.config();
 setupServices();
