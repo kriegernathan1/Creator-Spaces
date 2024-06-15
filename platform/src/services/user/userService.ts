@@ -72,9 +72,7 @@ userRouter.get(
     const jwt = (req as AuthenticatedRequest).auth;
     const users = await userService.getUsers(jwt.namespace);
 
-    res.json({
-      users,
-    });
+    res.json(users);
   },
 );
 
