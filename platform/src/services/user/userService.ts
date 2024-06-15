@@ -18,6 +18,7 @@ import {
 } from "../../middleware";
 import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
 import { CreateResponse } from "../../models/Responses/Response";
+import { RolePermissionMap } from "../../internal-services/Role/role";
 
 const userRouter = Router({ mergeParams: true });
 
@@ -89,21 +90,29 @@ userRouter.get(
 const FETCH_USER_ID_ROUTE_PARAM = "id";
 userRouter.get(
   `/user/:${FETCH_USER_ID_ROUTE_PARAM}?`,
-  isAuthorizedMiddlewareFactory(["get_user"]),
+  isAuthorizedMiddlewareFactory(["get_user", "get_user_self"]),
   async (req: Request, res: Response) => {
-    const userId = req.params[FETCH_USER_ID_ROUTE_PARAM];
-    if (!userId) {
+    const userJwt = (req as AuthenticatedRequest).auth;
+    const authenticatedUserPermissions =
+      RolePermissionMap[userJwt.role].permissions;
+    const queriedUserId = req.params[FETCH_USER_ID_ROUTE_PARAM];
+
+    if (
+      authenticatedUserPermissions.includes("get_user") === false &&
+      queriedUserId !== undefined &&
+      queriedUserId !== userJwt.userId
+    ) {
       CreateResponse(
         res,
         ErrorResponseFactory(
-          HttpStatusCode.BadRequest,
-          ResponseMessages.BadRequest,
+          HttpStatusCode.Forbidden,
+          ResponseMessages.UnauthorizedAction,
         ),
       );
       return;
     }
 
-    const user = await userService.getUser(userId);
+    const user = await userService.getUser(queriedUserId ?? userJwt.userId);
     res.json({
       user: user ?? {},
     });

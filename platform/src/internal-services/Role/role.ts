@@ -53,7 +53,7 @@ export type RolePermissionMap = {
 
 const adminPermissions = Permissions.map((p) => p.name);
 
-export const ActiveRoles: RolePermissionMap = {
+export const RolePermissionMap: RolePermissionMap = {
   platform_admin: {
     permissions: adminPermissions,
   },

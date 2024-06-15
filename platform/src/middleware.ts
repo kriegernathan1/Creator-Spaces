@@ -7,7 +7,7 @@ import {
 } from "./internal-services/Security/SecurityService";
 import { ErrorResponseFactory } from "./models/Responses/errorResponse";
 import { UserTable } from "./internal-services/Database/types";
-import { ActiveRoles, Permission } from "./internal-services/Role/role";
+import { RolePermissionMap, Permission } from "./internal-services/Role/role";
 import { CreateResponse } from "./models/Responses/Response";
 
 // WARNING: Middleware must load before routes are defined or error will be thrown by express
@@ -47,7 +47,8 @@ export function isAuthorizedMiddlewareFactory(
       return;
     }
 
-    const userPermissions = ActiveRoles[jwtParseResult.data.role].permissions;
+    const userPermissions =
+      RolePermissionMap[jwtParseResult.data.role].permissions;
 
     let isAuthorized = false;
     for (const permission of authorizedPermissions) {
