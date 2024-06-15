@@ -8,6 +8,7 @@ import {
 import { ErrorResponseFactory } from "./models/Responses/errorResponse";
 import { UserTable } from "./internal-services/Database/types";
 import { ActiveRoles, Permission } from "./internal-services/Role/role";
+import { CreateResponse } from "./models/Responses/Response";
 
 // WARNING: Middleware must load before routes are defined or error will be thrown by express
 
@@ -20,7 +21,8 @@ export function isAuthorizedMiddlewareFactory(
 ) {
   return function (req: Request, res: Response, next: NextFunction) {
     if (!(req as any).auth) {
-      res.json(
+      CreateResponse(
+        res,
         ErrorResponseFactory(
           HttpStatusCode.Unauthorized,
           ResponseMessages.UnauthenticatedAction,
@@ -34,7 +36,8 @@ export function isAuthorizedMiddlewareFactory(
       (req as AuthenticatedRequest).auth,
     );
     if (jwtParseResult.success === false) {
-      res.json(
+      CreateResponse(
+        res,
         ErrorResponseFactory(
           HttpStatusCode.InternalServerError,
           ResponseMessages.InternalServerError,
@@ -54,13 +57,13 @@ export function isAuthorizedMiddlewareFactory(
     }
 
     if (isAuthorized === false) {
-      res.json(
+      CreateResponse(
+        res,
         ErrorResponseFactory(
           HttpStatusCode.Forbidden,
           ResponseMessages.UnauthorizedAction,
         ),
       );
-
       return;
     }
 
@@ -75,7 +78,8 @@ export const handleExpressJwtErrors = (
   next: NextFunction,
 ) => {
   if (err.name === "UnauthorizedError") {
-    res.json(
+    CreateResponse(
+      res,
       ErrorResponseFactory(
         HttpStatusCode.Unauthorized,
         ResponseMessages.UnauthenticatedAction,
@@ -86,7 +90,8 @@ export const handleExpressJwtErrors = (
   }
 
   console.warn("Unhandled error from jwt Express");
-  res.json(
+  CreateResponse(
+    res,
     ErrorResponseFactory(
       HttpStatusCode.InternalServerError,
       ResponseMessages.InternalServerError,

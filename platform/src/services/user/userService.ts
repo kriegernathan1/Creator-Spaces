@@ -17,12 +17,14 @@ import {
   isAuthorizedMiddlewareFactory,
 } from "../../middleware";
 import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
+import { CreateResponse } from "../../models/Responses/Response";
 
 const userRouter = Router({ mergeParams: true });
 
 userRouter.post("/signup", async (req: Request, res: Response) => {
   if (NewUserSchema.safeParse(req.body).success === false) {
-    res.json(
+    CreateResponse(
+      res,
       ErrorResponseFactory(
         HttpStatusCode.BadRequest,
         ResponseMessages.BadRequest,
@@ -36,7 +38,8 @@ userRouter.post("/signup", async (req: Request, res: Response) => {
 
 userRouter.post("/signin", async (req: Request, res: Response) => {
   if (SigninFieldsSchema.safeParse(req.body).success === false) {
-    res.json(
+    CreateResponse(
+      res,
       ErrorResponseFactory(
         HttpStatusCode.BadRequest,
         ResponseMessages.BadRequest,
@@ -76,7 +79,8 @@ userRouter.get(
   async (req: Request, res: Response) => {
     const userId = req.params["id"];
     if (!userId) {
-      res.json(
+      CreateResponse(
+        res,
         ErrorResponseFactory(
           HttpStatusCode.BadRequest,
           ResponseMessages.BadRequest,
@@ -104,11 +108,11 @@ userRouter.put(
 
     const queriedUserId = req.params[USER_ID_PARAM];
     if (!queriedUserId) {
-      res.json(badRequest);
+      CreateResponse(res, badRequest);
       return;
     }
     if (UpdateUserSchema.safeParse(req.body).success === false) {
-      res.json(badRequest);
+      CreateResponse(res, badRequest);
       return;
     }
 
@@ -129,7 +133,7 @@ userRouter.delete(
 
     const userId = req.params["id"];
     if (!userId) {
-      res.json(badRequest);
+      CreateResponse(res, badRequest);
       return;
     }
 
