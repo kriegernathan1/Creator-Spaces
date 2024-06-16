@@ -13,9 +13,9 @@ import {
   SigninFieldsSchema,
 } from "../../internal-services/User/UserService";
 import { AuthenticatedRequest, isAuthorized } from "../../middleware";
-import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
 import { CreateResponse } from "../../models/Responses/Response";
-import { RolePermissionMap } from "../../internal-services/Role/role";
+import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
+import { isAuthorizedToPerformUserAction } from "./middleware";
 
 const userRouter = Router({ mergeParams: true });
 
@@ -86,26 +86,10 @@ const FETCH_USER_ID_ROUTE_PARAM = "id";
 userRouter.get(
   `/user/:${FETCH_USER_ID_ROUTE_PARAM}?`,
   isAuthorized(["get_user", "get_user_self"]),
+  isAuthorizedToPerformUserAction(FETCH_USER_ID_ROUTE_PARAM, "get_user"),
   async (req: Request, res: Response) => {
     const userJwt = (req as AuthenticatedRequest).auth;
-    const authenticatedUserPermissions =
-      RolePermissionMap[userJwt.role].permissions;
     const queriedUserId = req.params[FETCH_USER_ID_ROUTE_PARAM];
-
-    if (
-      authenticatedUserPermissions.includes("get_user") === false &&
-      queriedUserId !== undefined &&
-      queriedUserId !== userJwt.userId
-    ) {
-      CreateResponse(
-        res,
-        ErrorResponseFactory(
-          HttpStatusCode.Forbidden,
-          ResponseMessages.UnauthorizedAction,
-        ),
-      );
-      return;
-    }
 
     const user = await userService.getUser(queriedUserId ?? userJwt.userId);
     res.json(user);
@@ -135,31 +119,15 @@ const UPDATE_USER_ID_ROUTE_PARAM = "id";
 userRouter.put(
   `/user/:${UPDATE_USER_ID_ROUTE_PARAM}?`,
   isAuthorized(["update_user", "update_user_self"]),
+  isAuthorizedToPerformUserAction(UPDATE_USER_ID_ROUTE_PARAM, "update_user"),
   async (req: Request, res: Response) => {
     const authenticatedUserJwt = (req as AuthenticatedRequest).auth;
-    const authenticatedUserPermissions =
-      RolePermissionMap[authenticatedUserJwt.role].permissions;
     const queriedUserId = req.params[UPDATE_USER_ID_ROUTE_PARAM];
 
     const badRequest = ErrorResponseFactory(
       HttpStatusCode.BadRequest,
       ResponseMessages.BadRequest,
     );
-
-    if (
-      authenticatedUserPermissions.includes("update_user") === false &&
-      queriedUserId !== undefined &&
-      queriedUserId !== authenticatedUserJwt.userId
-    ) {
-      CreateResponse(
-        res,
-        ErrorResponseFactory(
-          HttpStatusCode.Forbidden,
-          ResponseMessages.UnauthorizedAction,
-        ),
-      );
-      return;
-    }
 
     if (UpdateUserSchema.safeParse(req.body).success === false) {
       CreateResponse(res, badRequest);
@@ -182,26 +150,10 @@ const DELETE_USER_ID_ROUTE_PARAM = "id";
 userRouter.delete(
   `/user/:${DELETE_USER_ID_ROUTE_PARAM}?`,
   isAuthorized(["delete_user", "delete_user_self"]),
+  isAuthorizedToPerformUserAction(DELETE_USER_ID_ROUTE_PARAM, "delete_user"),
   async (req: Request, res: Response) => {
     const queriedUserId = req.params[DELETE_USER_ID_ROUTE_PARAM];
     const authenticatedUserJwt = (req as AuthenticatedRequest).auth;
-    const authenticatedUserPermissions =
-      RolePermissionMap[authenticatedUserJwt.role].permissions;
-
-    if (
-      authenticatedUserPermissions.includes("delete_user") === false &&
-      queriedUserId !== undefined &&
-      queriedUserId !== authenticatedUserJwt.userId
-    ) {
-      CreateResponse(
-        res,
-        ErrorResponseFactory(
-          HttpStatusCode.Forbidden,
-          ResponseMessages.UnauthorizedAction,
-        ),
-      );
-      return;
-    }
 
     CreateResponse(
       res,
