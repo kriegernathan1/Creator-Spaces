@@ -10,10 +10,10 @@ import { AuthenticatedRequest } from "../../middleware";
 import { CreateResponse } from "../../models/Responses/Response";
 import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
 
-export const isAuthorizedToPerformUserAction = (
+export function isAuthorizedToPerformUserAction(
   idRouteParam: string,
   genericActionPermission: Permission,
-) => {
+) {
   return function (req: Request, res: Response, next: NextFunction) {
     const queriedUserId = req.params[idRouteParam];
     const authenticatedUserJwt = (req as AuthenticatedRequest).auth;
@@ -38,4 +38,4 @@ export const isAuthorizedToPerformUserAction = (
 
     next();
   };
-};
+}

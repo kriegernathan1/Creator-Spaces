@@ -12,7 +12,11 @@ import {
   SigninFields,
   SigninFieldsSchema,
 } from "../../internal-services/User/UserService";
-import { AuthenticatedRequest, isAuthorized } from "../../middleware";
+import {
+  AuthenticatedRequest,
+  isAuthorized,
+  isSchemaValid,
+} from "../../middleware";
 import { CreateResponse } from "../../models/Responses/Response";
 import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
 import { isAuthorizedToPerformUserAction } from "./middleware";
@@ -23,48 +27,35 @@ const FETCH_USER_ID_ROUTE_PARAM = "id";
 const UPDATE_USER_ID_ROUTE_PARAM = "id";
 const DELETE_USER_ID_ROUTE_PARAM = "id";
 
-userRouter.post("/signup", async (req: Request, res: Response) => {
-  if (NewUserSchema.safeParse(req.body).success === false) {
-    CreateResponse(
-      res,
-      ErrorResponseFactory(
-        HttpStatusCode.BadRequest,
-        ResponseMessages.BadRequest,
-      ),
-    );
-    return;
-  }
+userRouter.post(
+  "/signup",
+  isSchemaValid(NewUserSchema),
+  async (req: Request, res: Response) => {
+    const newUserFields = req.body as NewUser;
+    const allowedPublicAssignedRoles = ["user"];
 
-  const newUserFields = req.body as NewUser;
-  const allowedPublicAssignedRoles = ["user"];
-  if (!allowedPublicAssignedRoles.includes(newUserFields.role)) {
-    CreateResponse(
-      res,
-      ErrorResponseFactory(
-        HttpStatusCode.Forbidden,
-        ResponseMessages.UnauthorizedAction,
-      ),
-    );
-    return;
-  }
+    if (!allowedPublicAssignedRoles.includes(newUserFields.role)) {
+      CreateResponse(
+        res,
+        ErrorResponseFactory(
+          HttpStatusCode.Forbidden,
+          ResponseMessages.UnauthorizedAction,
+        ),
+      );
+      return;
+    }
 
-  CreateResponse(res, await userService.signup(req.body as NewUser));
-});
+    CreateResponse(res, await userService.signup(req.body as NewUser));
+  },
+);
 
-userRouter.post("/signin", async (req: Request, res: Response) => {
-  if (SigninFieldsSchema.safeParse(req.body).success === false) {
-    CreateResponse(
-      res,
-      ErrorResponseFactory(
-        HttpStatusCode.BadRequest,
-        ResponseMessages.BadRequest,
-      ),
-    );
-    return;
-  }
-
-  CreateResponse(res, await userService.signin(req.body as SigninFields));
-});
+userRouter.post(
+  "/signin",
+  isSchemaValid(SigninFieldsSchema),
+  async (req: Request, res: Response) => {
+    CreateResponse(res, await userService.signin(req.body as SigninFields));
+  },
+);
 
 userRouter.get(
   "/users",
@@ -102,18 +93,8 @@ userRouter.get(
 userRouter.post(
   `/user/create`,
   isAuthorized(["create_user"]),
+  isSchemaValid(NewUserSchema),
   async (req: Request, res: Response) => {
-    if (NewUserSchema.safeParse(req.body).success === false) {
-      CreateResponse(
-        res,
-        ErrorResponseFactory(
-          HttpStatusCode.BadRequest,
-          ResponseMessages.BadRequest,
-        ),
-      );
-      return;
-    }
-
     CreateResponse(res, await userService.signup(req.body as NewUser));
   },
 );
@@ -122,19 +103,10 @@ userRouter.put(
   `/user/:${UPDATE_USER_ID_ROUTE_PARAM}?`,
   isAuthorized(["update_user", "update_user_self"]),
   isAuthorizedToPerformUserAction(UPDATE_USER_ID_ROUTE_PARAM, "update_user"),
+  isSchemaValid(UpdateUserSchema),
   async (req: Request, res: Response) => {
     const authenticatedUserJwt = (req as AuthenticatedRequest).auth;
     const queriedUserId = req.params[UPDATE_USER_ID_ROUTE_PARAM];
-
-    const badRequest = ErrorResponseFactory(
-      HttpStatusCode.BadRequest,
-      ResponseMessages.BadRequest,
-    );
-
-    if (UpdateUserSchema.safeParse(req.body).success === false) {
-      CreateResponse(res, badRequest);
-      return;
-    }
 
     const user = req.body as UpdateUser;
     CreateResponse(

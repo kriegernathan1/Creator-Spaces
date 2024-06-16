@@ -1,14 +1,14 @@
 import { NextFunction, Request, Response } from "express";
+import { z } from "zod";
 import { HttpStatusCode } from "./enums/ResponseCodes";
 import { ResponseMessages } from "./enums/ResponseMessages";
+import { Permission, RolePermissionMap } from "./internal-services/Role/role";
 import {
   JwtToken,
   JwtTokenSchema,
 } from "./internal-services/Security/SecurityService";
-import { ErrorResponseFactory } from "./models/Responses/errorResponse";
-import { UserTable } from "./internal-services/Database/types";
-import { RolePermissionMap, Permission } from "./internal-services/Role/role";
 import { CreateResponse } from "./models/Responses/Response";
+import { ErrorResponseFactory } from "./models/Responses/errorResponse";
 
 // WARNING: Middleware must load before routes are defined or error will be thrown by express
 
@@ -97,3 +97,18 @@ export const handleExpressJwtErrors = (
     ),
   );
 };
+
+export function isSchemaValid(schema: z.ZodTypeAny) {
+  return function (req: Request, res: Response, next: NextFunction) {
+    if (schema.safeParse(req.body).success === false) {
+      CreateResponse(
+        res,
+        ErrorResponseFactory(
+          HttpStatusCode.BadRequest,
+          ResponseMessages.BadRequest,
+        ),
+      );
+      return;
+    }
+  };
+}
