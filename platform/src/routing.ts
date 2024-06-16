@@ -9,8 +9,7 @@ import userRouter from "./services/user/userService";
 dotenv.config();
 setupServices();
 
-const app = express();
-const PORT = process.env.PLATFORM_PORT;
+export const app = express();
 
 app.use(express.json());
 app.use(
@@ -23,7 +22,3 @@ app.use(
 app.use(handleExpressJwtErrors);
 app.use("/user-service", userRouter);
 app.use("/post-service", isAuthorized(), postRouter);
-
-app.listen(PORT, () => {
-  console.log(`Lisening on port ${PORT}`);
-});
