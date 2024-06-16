@@ -19,6 +19,10 @@ import { isAuthorizedToPerformUserAction } from "./middleware";
 
 const userRouter = Router({ mergeParams: true });
 
+const FETCH_USER_ID_ROUTE_PARAM = "id";
+const UPDATE_USER_ID_ROUTE_PARAM = "id";
+const DELETE_USER_ID_ROUTE_PARAM = "id";
+
 userRouter.post("/signup", async (req: Request, res: Response) => {
   if (NewUserSchema.safeParse(req.body).success === false) {
     CreateResponse(
@@ -82,7 +86,6 @@ userRouter.get(
   },
 );
 
-const FETCH_USER_ID_ROUTE_PARAM = "id";
 userRouter.get(
   `/user/:${FETCH_USER_ID_ROUTE_PARAM}?`,
   isAuthorized(["get_user", "get_user_self"]),
@@ -115,7 +118,6 @@ userRouter.post(
   },
 );
 
-const UPDATE_USER_ID_ROUTE_PARAM = "id";
 userRouter.put(
   `/user/:${UPDATE_USER_ID_ROUTE_PARAM}?`,
   isAuthorized(["update_user", "update_user_self"]),
@@ -146,7 +148,6 @@ userRouter.put(
   },
 );
 
-const DELETE_USER_ID_ROUTE_PARAM = "id";
 userRouter.delete(
   `/user/:${DELETE_USER_ID_ROUTE_PARAM}?`,
   isAuthorized(["delete_user", "delete_user_self"]),
