@@ -1,9 +1,31 @@
 # Creator Spaces
-A platform for content creators looking for an alternative to popular platforms such as Instagram, Youtube, and TikTok. Commonly creators can be forced to alter or outright remove their content from these sites due to recommender systems that favor some content over others. Creator spaces looks to resolve this problem by enabling users to easily create their own independent branded "spaces". Said spaces would appear independent from the platform to end users but would be powered by our suite of microservices and configuration driven frontend.
+A platform that allows content creators to serve their core audience in their own seemingly independent space.
 
-- Technologies
+## Overview
+Creator Spaces consists of three main pieces:
+ - BaaS
+ - Server Driven Frontend
+ - Creator Dashboard
+
+### BaaS
+A headless backend that contains all the services needed to power a content heavy frontend. Services include:
+- User management
+- Post management
+- Content monetization
+-  Moderation
+-  Configuration
+-  User Support
+
+### Server Driven Frontend
+The majority of creators don't want to spend their time building their own website. For this reason, we created an independent frontend that integrates with the BaaS. The frontend is driven completely from the configuration the creator sets enabling them to have a brand-specific space for their audience.
+
+### Creator Dashboard
+A powerful dashboard creators will build, maintain, and personalize their space. 
+
+## Technologies
   - Vue
   - NodeJS
   - Express
+  - Jest
   - Postgresql
   - NGINX
