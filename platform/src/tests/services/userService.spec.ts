@@ -3,6 +3,7 @@ import { disposeServices } from "../../internal-services/ServiceManager";
 import { app } from "../../routing";
 import request from "supertest";
 import { server } from "../../server";
+import { SigninFields } from "../../internal-services/User/UserService";
 
 afterAll(() => {
   server.close();
@@ -10,7 +11,7 @@ afterAll(() => {
 
 describe("Test login", () => {
   it("should successfully login user", async () => {
-    const body = {
+    const body: SigninFields = {
       email: "me@email.com",
       password: "password1",
     };
