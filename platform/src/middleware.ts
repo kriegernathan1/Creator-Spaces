@@ -110,5 +110,7 @@ export function isSchemaValid(schema: z.ZodTypeAny) {
       );
       return;
     }
+
+    next();
   };
 }
