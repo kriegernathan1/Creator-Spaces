@@ -35,4 +35,8 @@ export class DatabaseService implements IDatabaseService {
   getClient(): DatabaseClient {
     return this.client;
   }
+
+  async destroyConnectionPool(): Promise<void> {
+    await this.client.destroy();
+  }
 }

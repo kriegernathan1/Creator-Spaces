@@ -39,7 +39,7 @@ export function setupServices() {
 }
 
 export function disposeServices() {
-  databaseService.getClient().destroy();
+  databaseService.destroyConnectionPool();
 }
 
 export { userService, securityService };
