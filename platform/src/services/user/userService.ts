@@ -12,10 +12,7 @@ import {
   SigninFields,
   SigninFieldsSchema,
 } from "../../internal-services/User/UserService";
-import {
-  AuthenticatedRequest,
-  isAuthorizedMiddlewareFactory,
-} from "../../middleware";
+import { AuthenticatedRequest, isAuthorized } from "../../middleware";
 import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
 import { CreateResponse } from "../../models/Responses/Response";
 import { RolePermissionMap } from "../../internal-services/Role/role";
@@ -67,7 +64,7 @@ userRouter.post("/signin", async (req: Request, res: Response) => {
 
 userRouter.get(
   "/users",
-  isAuthorizedMiddlewareFactory(["get_users"]),
+  isAuthorized(["get_users"]),
   async (req: Request, res: Response) => {
     const jwt = (req as AuthenticatedRequest).auth;
     const users = await userService.getUsers(jwt.namespace);
@@ -78,7 +75,7 @@ userRouter.get(
 
 userRouter.get(
   "/user/refreshToken",
-  isAuthorizedMiddlewareFactory(),
+  isAuthorized(),
   async (req: Request, res: Response) => {
     const oldToken = (req as AuthenticatedRequest).auth;
     res.json(userService.refreshToken(oldToken));
@@ -88,7 +85,7 @@ userRouter.get(
 const FETCH_USER_ID_ROUTE_PARAM = "id";
 userRouter.get(
   `/user/:${FETCH_USER_ID_ROUTE_PARAM}?`,
-  isAuthorizedMiddlewareFactory(["get_user", "get_user_self"]),
+  isAuthorized(["get_user", "get_user_self"]),
   async (req: Request, res: Response) => {
     const userJwt = (req as AuthenticatedRequest).auth;
     const authenticatedUserPermissions =
@@ -117,7 +114,7 @@ userRouter.get(
 
 userRouter.post(
   `/user/create`,
-  isAuthorizedMiddlewareFactory(["create_user"]),
+  isAuthorized(["create_user"]),
   async (req: Request, res: Response) => {
     if (NewUserSchema.safeParse(req.body).success === false) {
       CreateResponse(
@@ -137,7 +134,7 @@ userRouter.post(
 const UPDATE_USER_ID_ROUTE_PARAM = "id";
 userRouter.put(
   `/user/:${UPDATE_USER_ID_ROUTE_PARAM}?`,
-  isAuthorizedMiddlewareFactory(["update_user", "update_user_self"]),
+  isAuthorized(["update_user", "update_user_self"]),
   async (req: Request, res: Response) => {
     const authenticatedUserJwt = (req as AuthenticatedRequest).auth;
     const authenticatedUserPermissions =
@@ -184,7 +181,7 @@ userRouter.put(
 const DELETE_USER_ID_ROUTE_PARAM = "id";
 userRouter.delete(
   `/user/:${DELETE_USER_ID_ROUTE_PARAM}?`,
-  isAuthorizedMiddlewareFactory(["delete_user", "delete_user_self"]),
+  isAuthorized(["delete_user", "delete_user_self"]),
   async (req: Request, res: Response) => {
     const queriedUserId = req.params[DELETE_USER_ID_ROUTE_PARAM];
     const authenticatedUserJwt = (req as AuthenticatedRequest).auth;

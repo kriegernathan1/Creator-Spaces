@@ -16,9 +16,7 @@ export interface AuthenticatedRequest extends Request {
   auth: JwtToken;
 }
 
-export function isAuthorizedMiddlewareFactory(
-  authorizedPermissions: Permission[] = [],
-) {
+export function isAuthorized(authorizedPermissions: Permission[] = []) {
   return function (req: Request, res: Response, next: NextFunction) {
     if (!(req as any).auth) {
       CreateResponse(
@@ -29,7 +27,6 @@ export function isAuthorizedMiddlewareFactory(
         ),
       );
 
-      next(HttpStatusCode.Unauthorized);
       return;
     }
 
