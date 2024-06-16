@@ -12,6 +12,7 @@ export interface Services {
 
 let userService: UserService;
 let securityService: SecurityService;
+let databaseService: DatabaseService;
 
 export function setupServices() {
   const connectionString = process.env.DEV_POSTGRESQL_DB_CONN_URL;
@@ -21,7 +22,7 @@ export function setupServices() {
     process.exit(1);
   }
 
-  const databaseService = new DatabaseService({
+  databaseService = new DatabaseService({
     connectionString: connectionString,
   });
 
@@ -35,6 +36,10 @@ export function setupServices() {
     securityService,
     userRepository,
   });
+}
+
+export function disposeServices() {
+  databaseService.getClient().destroy();
 }
 
 export { userService, securityService };
