@@ -9,7 +9,6 @@ import {
 } from "../../internal-services/Database/types";
 import { userService } from "../../internal-services/ServiceManager";
 import {
-  RedactedUser,
   SigninFields,
   SigninFieldsSchema,
 } from "../../internal-services/User/UserService";
@@ -20,7 +19,6 @@ import {
 } from "../../middleware";
 import {
   BaseResponseFactory,
-  DataResponse,
   SendResponse,
 } from "../../models/Responses/Response";
 import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
