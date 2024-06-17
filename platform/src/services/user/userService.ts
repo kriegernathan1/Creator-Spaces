@@ -23,15 +23,23 @@ import {
 } from "../../models/Responses/Response";
 import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
 import { isAuthorizedToPerformUserAction } from "./middleware";
+import { userServiceEndpoints } from "..";
 
 const userRouter = Router({ mergeParams: true });
 
-const FETCH_USER_ID_ROUTE_PARAM = "id";
-const UPDATE_USER_ID_ROUTE_PARAM = "id";
-const DELETE_USER_ID_ROUTE_PARAM = "id";
+const {
+  signup,
+  signin,
+  fetchUsers,
+  refreshToken,
+  fetchUser,
+  createUser,
+  updateUser,
+  deleteUser,
+} = userServiceEndpoints;
 
 userRouter.post(
-  "/signup",
+  signup.path,
   isSchemaValid(NewUserSchema),
   async (req: Request, res: Response) => {
     const newUserFields = req.body as NewUser;
@@ -53,7 +61,7 @@ userRouter.post(
 );
 
 userRouter.post(
-  "/signin",
+  signin.path,
   isSchemaValid(SigninFieldsSchema),
   async (req: Request, res: Response) => {
     SendResponse(res, await userService.signin(req.body as SigninFields));
@@ -61,8 +69,8 @@ userRouter.post(
 );
 
 userRouter.get(
-  "/users",
-  isAuthorized(["get_users"]),
+  fetchUsers.path,
+  isAuthorized(fetchUsers.permissions),
   async (req: Request, res: Response) => {
     const jwt = (req as AuthenticatedRequest).auth;
     const users = await userService.getUsers(jwt.namespace);
@@ -77,8 +85,8 @@ userRouter.get(
 );
 
 userRouter.get(
-  "/user/refreshToken",
-  isAuthorized(),
+  refreshToken.path,
+  isAuthorized(refreshToken.permissions),
   async (req: Request, res: Response) => {
     const oldToken = (req as AuthenticatedRequest).auth;
     res.json(userService.refreshToken(oldToken));
@@ -86,12 +94,15 @@ userRouter.get(
 );
 
 userRouter.get(
-  `/user/:${FETCH_USER_ID_ROUTE_PARAM}?`,
-  isAuthorized(["get_user", "get_user_self"]),
-  isAuthorizedToPerformUserAction(FETCH_USER_ID_ROUTE_PARAM, "get_user"),
+  fetchUser.path,
+  isAuthorized(fetchUser.permissions),
+  isAuthorizedToPerformUserAction(
+    fetchUser.routeParams![0],
+    fetchUser.permissions[0],
+  ),
   async (req: Request, res: Response) => {
     const userJwt = (req as AuthenticatedRequest).auth;
-    const queriedUserId = req.params[FETCH_USER_ID_ROUTE_PARAM];
+    const queriedUserId = req.params[fetchUser.routeParams![0]];
 
     const user = await userService.getUser(queriedUserId ?? userJwt.userId);
     res.json(user);
@@ -99,8 +110,8 @@ userRouter.get(
 );
 
 userRouter.post(
-  `/user/create`,
-  isAuthorized(["create_user"]),
+  createUser.path,
+  isAuthorized(createUser.permissions),
   isSchemaValid(NewUserSchema),
   async (req: Request, res: Response) => {
     SendResponse(res, await userService.signup(req.body as NewUser));
@@ -108,13 +119,13 @@ userRouter.post(
 );
 
 userRouter.put(
-  `/user/:${UPDATE_USER_ID_ROUTE_PARAM}?`,
-  isAuthorized(["update_user", "update_user_self"]),
-  isAuthorizedToPerformUserAction(UPDATE_USER_ID_ROUTE_PARAM, "update_user"),
+  updateUser.path,
+  isAuthorized(updateUser.permissions),
+  isAuthorizedToPerformUserAction(updateUser.routeParams![0], "update_user"),
   isSchemaValid(UpdateUserSchema),
   async (req: Request, res: Response) => {
     const authenticatedUserJwt = (req as AuthenticatedRequest).auth;
-    const queriedUserId = req.params[UPDATE_USER_ID_ROUTE_PARAM];
+    const queriedUserId = req.params[updateUser.routeParams![0]];
 
     const user = req.body as UpdateUser;
     SendResponse(
@@ -129,11 +140,14 @@ userRouter.put(
 );
 
 userRouter.delete(
-  `/user/:${DELETE_USER_ID_ROUTE_PARAM}?`,
-  isAuthorized(["delete_user", "delete_user_self"]),
-  isAuthorizedToPerformUserAction(DELETE_USER_ID_ROUTE_PARAM, "delete_user"),
+  deleteUser.path,
+  isAuthorized(deleteUser.permissions),
+  isAuthorizedToPerformUserAction(
+    deleteUser.routeParams![0],
+    deleteUser.permissions[0],
+  ),
   async (req: Request, res: Response) => {
-    const queriedUserId = req.params[DELETE_USER_ID_ROUTE_PARAM];
+    const queriedUserId = req.params[deleteUser.routeParams![0]];
     const authenticatedUserJwt = (req as AuthenticatedRequest).auth;
 
     SendResponse(
