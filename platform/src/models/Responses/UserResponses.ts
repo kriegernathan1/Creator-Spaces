@@ -4,11 +4,11 @@ import { BaseResponse, BaseResponseFactory } from "./Response";
 import { ErrorResponse } from "./errorResponse";
 import { PlatformResponse } from "./types";
 
-export type SigninResponse =
-  | (BaseResponse & {
-      token: string;
-    })
-  | PlatformResponse;
+export type SuccessfulSigninResponse = BaseResponse & {
+  token: string;
+};
+
+export type SigninResponse = SuccessfulSigninResponse | PlatformResponse;
 
 export function SigninResponseFactory(
   code: ResponseCode,

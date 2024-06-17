@@ -8,7 +8,7 @@ export enum ResponseMessages {
 
   // User Service ===================================
   PasswordsDontMatch = "Passwords do not match.",
-  UnableToFindUser = "Unable to find a user with that email or password",
+  UnableToFindUser = "Unable to login with that email and password combination",
   WeakPassword = "Password is too weak",
   UniqueEmailOnly = "A user with that email already exists. Please try a different email.",
   // End User Service ===============================

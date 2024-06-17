@@ -55,7 +55,7 @@ export function isAuthorized(authorizedPermissions: Permission[] = []) {
       }
     }
 
-    if (isAuthorized === false) {
+    if (isAuthorized === false && authorizedPermissions.length > 0) {
       CreateResponse(
         res,
         ErrorResponseFactory(
