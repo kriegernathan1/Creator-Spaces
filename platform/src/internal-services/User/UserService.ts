@@ -119,7 +119,10 @@ export class UserService implements IUserService {
     );
 
     if (doPasswordsMatch === false) {
-      return genericErrorResponse;
+      return ErrorResponseFactory(
+        HttpStatusCode.Unauthorized,
+        ResponseMessages.UnauthorizedAction,
+      );
     }
 
     const payload: JwtPayload = {
