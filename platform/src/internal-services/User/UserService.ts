@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { IUserRepository } from "../../repositories/UserRepository";
 import { HttpStatusCode } from "../../enums/ResponseCodes";
 import { ResponseMessages } from "../../enums/ResponseMessages";
 import { BaseResponseFactory } from "../../models/Responses/Response";
@@ -12,9 +11,9 @@ import {
 } from "../../models/Responses/UserResponses";
 import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
 import { PlatformResponse } from "../../models/Responses/types";
-import { NewUser, UpdateUser, User } from "../Database/types";
+import { IUserRepository } from "../../repositories/UserRepository";
+import { NewUser, UpdateUser, User, UserSchema } from "../Database/types";
 import {
-  EncodedJwtToken,
   ISecurityService,
   JwtPayload,
   JwtToken,
@@ -32,7 +31,11 @@ export const SigninFieldsSchema = z
   })
   .strict() satisfies z.ZodType<SigninFields>;
 
-type RedactedUser = Omit<User, "password">;
+export type RedactedUser = Omit<User, "password">;
+
+export const RedactedUserSchema = UserSchema.extend({
+  password: z.undefined(),
+}).strict() satisfies z.ZodType<RedactedUser>;
 
 export interface IUserService {
   signup(user: NewUser): Promise<PlatformResponse>;
@@ -144,7 +147,7 @@ export class UserService implements IUserService {
     return RefreshTokenResponseFactory(HttpStatusCode.Ok, newToken);
   }
 
-  async getUsers(namespace: string): Promise<RedactedUser[] | []> {
+  async getUsers(namespace: string): Promise<RedactedUser[]> {
     const users = await this.userRepository.getUsers(namespace);
 
     return users.map((user) => {

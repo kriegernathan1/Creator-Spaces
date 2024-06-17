@@ -7,7 +7,7 @@ import {
   RolePermissionMap,
 } from "../../internal-services/Role/role";
 import { AuthenticatedRequest } from "../../middleware";
-import { CreateResponse } from "../../models/Responses/Response";
+import { SendResponse } from "../../models/Responses/Response";
 import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
 
 export function isAuthorizedToPerformUserAction(
@@ -26,7 +26,7 @@ export function isAuthorizedToPerformUserAction(
       queriedUserId !== undefined &&
       queriedUserId !== authenticatedUserJwt.userId
     ) {
-      CreateResponse(
+      SendResponse(
         res,
         ErrorResponseFactory(
           HttpStatusCode.Forbidden,

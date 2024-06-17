@@ -3,12 +3,12 @@ import {
   SigninResponse,
   SuccessfulSigninResponse,
 } from "../../models/Responses/UserResponses";
-import { BaseResponse } from "../../models/Responses/Response";
+import { BaseResponse, DataResponse } from "../../models/Responses/Response";
 import { ErrorResponse } from "../../models/Responses/errorResponse";
 
 export const BaseResponseSchema = z
   .object({
-    code: z.coerce.number(),
+    code: z.number(),
   })
   .strict() satisfies z.ZodType<BaseResponse>;
 

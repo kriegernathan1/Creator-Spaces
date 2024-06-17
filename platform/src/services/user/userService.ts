@@ -9,6 +9,7 @@ import {
 } from "../../internal-services/Database/types";
 import { userService } from "../../internal-services/ServiceManager";
 import {
+  RedactedUser,
   SigninFields,
   SigninFieldsSchema,
 } from "../../internal-services/User/UserService";
@@ -17,7 +18,11 @@ import {
   isAuthorized,
   isSchemaValid,
 } from "../../middleware";
-import { CreateResponse } from "../../models/Responses/Response";
+import {
+  BaseResponseFactory,
+  DataResponse,
+  SendResponse,
+} from "../../models/Responses/Response";
 import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
 import { isAuthorizedToPerformUserAction } from "./middleware";
 
@@ -35,7 +40,7 @@ userRouter.post(
     const allowedPublicAssignedRoles = ["user"];
 
     if (!allowedPublicAssignedRoles.includes(newUserFields.role)) {
-      CreateResponse(
+      SendResponse(
         res,
         ErrorResponseFactory(
           HttpStatusCode.Forbidden,
@@ -45,7 +50,7 @@ userRouter.post(
       return;
     }
 
-    CreateResponse(res, await userService.signup(req.body as NewUser));
+    SendResponse(res, await userService.signup(req.body as NewUser));
   },
 );
 
@@ -53,7 +58,7 @@ userRouter.post(
   "/signin",
   isSchemaValid(SigninFieldsSchema),
   async (req: Request, res: Response) => {
-    CreateResponse(res, await userService.signin(req.body as SigninFields));
+    SendResponse(res, await userService.signin(req.body as SigninFields));
   },
 );
 
@@ -64,7 +69,12 @@ userRouter.get(
     const jwt = (req as AuthenticatedRequest).auth;
     const users = await userService.getUsers(jwt.namespace);
 
-    res.json(users);
+    const response = {
+      ...BaseResponseFactory(HttpStatusCode.Ok),
+      data: users,
+    };
+
+    SendResponse(res, response);
   },
 );
 
@@ -95,7 +105,7 @@ userRouter.post(
   isAuthorized(["create_user"]),
   isSchemaValid(NewUserSchema),
   async (req: Request, res: Response) => {
-    CreateResponse(res, await userService.signup(req.body as NewUser));
+    SendResponse(res, await userService.signup(req.body as NewUser));
   },
 );
 
@@ -109,7 +119,7 @@ userRouter.put(
     const queriedUserId = req.params[UPDATE_USER_ID_ROUTE_PARAM];
 
     const user = req.body as UpdateUser;
-    CreateResponse(
+    SendResponse(
       res,
       await userService.updateUser(
         queriedUserId ?? authenticatedUserJwt.userId,
@@ -128,7 +138,7 @@ userRouter.delete(
     const queriedUserId = req.params[DELETE_USER_ID_ROUTE_PARAM];
     const authenticatedUserJwt = (req as AuthenticatedRequest).auth;
 
-    CreateResponse(
+    SendResponse(
       res,
       await userService.deleteUser(
         queriedUserId ?? authenticatedUserJwt.userId,

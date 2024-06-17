@@ -7,7 +7,7 @@ import {
   JwtToken,
   JwtTokenSchema,
 } from "./internal-services/Security/SecurityService";
-import { CreateResponse } from "./models/Responses/Response";
+import { SendResponse } from "./models/Responses/Response";
 import { ErrorResponseFactory } from "./models/Responses/errorResponse";
 
 // WARNING: Middleware must load before routes are defined or error will be thrown by express
@@ -19,7 +19,7 @@ export interface AuthenticatedRequest extends Request {
 export function isAuthorized(authorizedPermissions: Permission[] = []) {
   return function (req: Request, res: Response, next: NextFunction) {
     if (!(req as any).auth) {
-      CreateResponse(
+      SendResponse(
         res,
         ErrorResponseFactory(
           HttpStatusCode.Unauthorized,
@@ -34,7 +34,7 @@ export function isAuthorized(authorizedPermissions: Permission[] = []) {
       (req as AuthenticatedRequest).auth,
     );
     if (jwtParseResult.success === false) {
-      CreateResponse(
+      SendResponse(
         res,
         ErrorResponseFactory(
           HttpStatusCode.InternalServerError,
@@ -56,7 +56,7 @@ export function isAuthorized(authorizedPermissions: Permission[] = []) {
     }
 
     if (isAuthorized === false && authorizedPermissions.length > 0) {
-      CreateResponse(
+      SendResponse(
         res,
         ErrorResponseFactory(
           HttpStatusCode.Forbidden,
@@ -77,7 +77,7 @@ export const handleExpressJwtErrors = (
   next: NextFunction,
 ) => {
   if (err.name === "UnauthorizedError") {
-    CreateResponse(
+    SendResponse(
       res,
       ErrorResponseFactory(
         HttpStatusCode.Unauthorized,
@@ -89,7 +89,7 @@ export const handleExpressJwtErrors = (
   }
 
   console.warn("Unhandled error from jwt Express");
-  CreateResponse(
+  SendResponse(
     res,
     ErrorResponseFactory(
       HttpStatusCode.InternalServerError,
@@ -101,7 +101,7 @@ export const handleExpressJwtErrors = (
 export function isSchemaValid(schema: z.ZodTypeAny) {
   return function (req: Request, res: Response, next: NextFunction) {
     if (schema.safeParse(req.body).success === false) {
-      CreateResponse(
+      SendResponse(
         res,
         ErrorResponseFactory(
           HttpStatusCode.BadRequest,

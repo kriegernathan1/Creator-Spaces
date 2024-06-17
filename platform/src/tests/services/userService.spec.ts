@@ -1,23 +1,24 @@
-import { HttpStatusCode } from "../../enums/ResponseCodes";
-import { disposeServices } from "../../internal-services/ServiceManager";
-import { app } from "../../routing";
 import request from "supertest";
-import { server } from "../../server";
-import { SigninFields } from "../../internal-services/User/UserService";
-import {
-  ErrorResponseSchema,
-  SuccessfulSigninResponseSchema,
-} from "../helpers/responses.schema";
-import { ErrorResponse } from "../../models/Responses/errorResponse";
+import { HttpStatusCode } from "../../enums/ResponseCodes";
 import {
   JwtPayload,
-  JwtToken,
   SecurityService,
 } from "../../internal-services/Security/SecurityService";
 import {
-  SigninResponse,
-  SuccessfulSigninResponse,
-} from "../../models/Responses/UserResponses";
+  RedactedUser,
+  RedactedUserSchema,
+  SigninFields,
+} from "../../internal-services/User/UserService";
+import { DataResponse } from "../../models/Responses/Response";
+import { ErrorResponse } from "../../models/Responses/errorResponse";
+import { app } from "../../routing";
+import { server } from "../../server";
+import {
+  BaseResponseSchema,
+  ErrorResponseSchema,
+  SuccessfulSigninResponseSchema,
+} from "../helpers/responses.schema";
+import { z } from "zod";
 
 afterAll(() => {
   server.close();
@@ -77,7 +78,7 @@ describe("User Service", () => {
   });
 
   describe("Refresh Token", () => {
-    it("should return a new JWT token to a logged in user with valid JWT", async () => {
+    it("Should return a new JWT token to a logged in user with valid JWT", async () => {
       const freshJwt = new SecurityService({}).generateJwt({
         userId: "1234",
         namespace: "platform",
@@ -92,28 +93,49 @@ describe("User Service", () => {
         SuccessfulSigninResponseSchema.safeParse(res.body).success,
       ).toBeTruthy();
     });
+
+    it("Should reject an expired JWT token", async () => {
+      const expiredJWT = new SecurityService({}).generateJwt(
+        {
+          userId: "1234",
+          namespace: "platform",
+          role: "platform_admin",
+        } as JwtPayload,
+        "0",
+      );
+
+      const res = await request(app)
+        .get("/user-service/user/refreshToken")
+        .set("Authorization", `Bearer ${expiredJWT}`);
+
+      expect(ErrorResponseSchema.safeParse(res.body).success).toBeTruthy();
+    });
+
+    it("Should reject a missing JWT token", async () => {
+      const res = await request(app).get("/user-service/user/refreshToken");
+
+      expect(ErrorResponseSchema.safeParse(res.body).success).toBeTruthy();
+    });
   });
 
-  it("should reject an expired JWT token", async () => {
-    const freshJwt = new SecurityService({}).generateJwt(
-      {
+  describe("Fetch Users", () => {
+    it("Should allow authenticated user with permissions to fetch users", async () => {
+      const freshJwt = new SecurityService({}).generateJwt({
         userId: "1234",
         namespace: "platform",
         role: "platform_admin",
-      } as JwtPayload,
-      "0",
-    );
+      } as JwtPayload);
 
-    const res = await request(app)
-      .get("/user-service/user/refreshToken")
-      .set("Authorization", `Bearer ${freshJwt}`);
+      const res = await request(app)
+        .get("/user-service/users")
+        .set("Authorization", `Bearer ${freshJwt}`);
 
-    expect(ErrorResponseSchema.safeParse(res.body).success).toBeTruthy();
-  });
+      const dataResponseSchema = BaseResponseSchema.extend({
+        data: z.array(RedactedUserSchema),
+      });
 
-  it("should reject a missing JWT token", async () => {
-    const res = await request(app).get("/user-service/user/refreshToken");
-
-    expect(ErrorResponseSchema.safeParse(res.body).success).toBeTruthy();
+      expect(dataResponseSchema.safeParse(res.body).success).toBe(true);
+      expect((res.body as DataResponse<RedactedUser[]>).data).toBeDefined();
+    });
   });
 });

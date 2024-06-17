@@ -21,7 +21,7 @@ export interface UserTable {
   first_name: string;
   last_name: string;
   email: string;
-  created_at: ColumnType<Date, never, never>;
+  created_at: ColumnType<string, never, never>;
   namespace: string;
   password: ColumnType<string, string, string | undefined>;
   role: ROLES;
@@ -31,7 +31,7 @@ export type User = Selectable<UserTable>;
 export type NewUser = Insertable<UserTable>;
 export type UpdateUser = Updateable<UserTable>;
 
-export const NewUserSchema = z
+export const UserSchema = z
   .object({
     first_name: z.string(),
     last_name: z.string(),
@@ -39,9 +39,14 @@ export const NewUserSchema = z
     namespace: z.string(),
     password: z.string(),
     role: z.enum(ALL_ROLES),
-    id: z.optional(z.string()),
+    id: z.string(),
+    created_at: z.string(),
   })
-  .strict() satisfies z.ZodType<NewUser>;
+  .strict() satisfies z.ZodType<User>;
+
+export const NewUserSchema = UserSchema.extend({
+  id: z.optional(z.string()),
+}).strict() satisfies z.ZodType<NewUser>;
 
 export const UpdateUserSchema = z
   .object({
