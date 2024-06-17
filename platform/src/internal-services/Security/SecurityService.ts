@@ -60,9 +60,9 @@ export class SecurityService implements ISecurityService {
     return true;
   }
 
-  generateJwt(plainPayload: any): string {
+  generateJwt(plainPayload: any, ttl = JWT_TTL): string {
     const jwt = sign(plainPayload, process.env.JWT_SECRET!, {
-      expiresIn: JWT_TTL,
+      expiresIn: ttl,
     });
     return jwt;
   }

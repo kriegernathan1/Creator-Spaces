@@ -93,4 +93,27 @@ describe("User Service", () => {
       ).toBeTruthy();
     });
   });
+
+  it("should reject an expired JWT token", async () => {
+    const freshJwt = new SecurityService({}).generateJwt(
+      {
+        userId: "1234",
+        namespace: "platform",
+        role: "platform_admin",
+      } as JwtPayload,
+      "0",
+    );
+
+    const res = await request(app)
+      .get("/user-service/user/refreshToken")
+      .set("Authorization", `Bearer ${freshJwt}`);
+
+    expect(ErrorResponseSchema.safeParse(res.body).success).toBeTruthy();
+  });
+
+  it("should reject a missing JWT token", async () => {
+    const res = await request(app).get("/user-service/user/refreshToken");
+
+    expect(ErrorResponseSchema.safeParse(res.body).success).toBeTruthy();
+  });
 });
