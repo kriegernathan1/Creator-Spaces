@@ -23,7 +23,7 @@ import {
 } from "../../models/Responses/Response";
 import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
 import { isAuthorizedToPerformUserAction } from "./middleware";
-import { userServiceEndpoints } from "..";
+import { userServiceEndpoints } from ".";
 
 const userRouter = Router({ mergeParams: true });
 

@@ -5,6 +5,7 @@ import { setupServices } from "./internal-services/ServiceManager";
 import { handleExpressJwtErrors, isAuthorized } from "./middleware";
 import postRouter from "./services/post/postService";
 import userRouter from "./services/user/userService";
+import { Services } from "./services";
 
 dotenv.config();
 setupServices();
@@ -20,5 +21,5 @@ app.use(
   }),
 );
 app.use(handleExpressJwtErrors);
-app.use("/user-service", userRouter);
-app.use("/post-service", isAuthorized(), postRouter);
+app.use(Services.User.path, userRouter);
+app.use(Services.Post.path, isAuthorized(), postRouter);
