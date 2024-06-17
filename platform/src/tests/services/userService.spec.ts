@@ -1,4 +1,5 @@
 import request from "supertest";
+import { z } from "zod";
 import { HttpStatusCode } from "../../enums/ResponseCodes";
 import {
   JwtPayload,
@@ -13,16 +14,22 @@ import { DataResponse } from "../../models/Responses/Response";
 import { ErrorResponse } from "../../models/Responses/errorResponse";
 import { app } from "../../routing";
 import { server } from "../../server";
+import { Services } from "../../services";
+import { getEndpointUrl } from "../helpers/helpers";
 import {
   BaseResponseSchema,
   ErrorResponseSchema,
   SuccessfulSigninResponseSchema,
 } from "../helpers/responses.schema";
-import { z } from "zod";
 
 afterAll(() => {
   server.close();
 });
+
+const getUrl = (endpointPath: string) => {
+  const SERVICE_URL_PREFIX = Services.User.path;
+  return getEndpointUrl(SERVICE_URL_PREFIX, endpointPath);
+};
 
 describe("User Service", () => {
   describe("Login", () => {
