@@ -10,13 +10,9 @@ type Endpoint = {
   routeParams?: string[];
 };
 
-type Endpoints = {
-  [key: string]: Endpoint;
-};
-
 type Action = keyof typeof HTTPMethod;
 
-export const userServiceEndpoints: Endpoints = {
+export const userServiceEndpoints = {
   signup: {
     method: "POST",
     path: "/signup",
@@ -82,4 +78,4 @@ export const userServiceEndpoints: Endpoints = {
     protected: true,
     routeParams: ["id"],
   },
-};
+} satisfies Record<string, Endpoint>;

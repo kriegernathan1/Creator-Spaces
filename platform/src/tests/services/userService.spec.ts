@@ -15,6 +15,7 @@ import { ErrorResponse } from "../../models/Responses/errorResponse";
 import { app } from "../../routing";
 import { server } from "../../server";
 import { Services } from "../../services";
+import { userServiceEndpoints } from "../../services/user";
 import { getEndpointUrl } from "../helpers/helpers";
 import {
   BaseResponseSchema,
@@ -31,6 +32,8 @@ const getUrl = (endpointPath: string) => {
   return getEndpointUrl(SERVICE_URL_PREFIX, endpointPath);
 };
 
+const { signin, refreshToken, fetchUsers } = userServiceEndpoints;
+
 describe("User Service", () => {
   describe("Login", () => {
     it("Should login user with correct credentials and return token", async () => {
@@ -39,7 +42,7 @@ describe("User Service", () => {
         password: "password1",
       };
       const res = await request(app)
-        .post("/user-service/signin")
+        .post(getUrl(signin.path))
         .send(body)
         .set("Accept", "application/json");
       expect(res.statusCode).toEqual(HttpStatusCode.Ok);
@@ -55,7 +58,7 @@ describe("User Service", () => {
       };
 
       const res = await request(app)
-        .post("/user-service/signin")
+        .post(getUrl(signin.path))
         .send(body)
         .set("Accept", "application/json");
       expect(res.statusCode).toEqual(HttpStatusCode.Unauthorized);
@@ -68,7 +71,7 @@ describe("User Service", () => {
       };
 
       const res = await request(app)
-        .post("/user-service/signin")
+        .post(getUrl(signin.path))
         .send(body)
         .set("Accept", "application/json");
 
@@ -93,7 +96,7 @@ describe("User Service", () => {
       } as JwtPayload);
 
       const res = await request(app)
-        .get("/user-service/user/refreshToken")
+        .get(getUrl(refreshToken.path))
         .set("Authorization", `Bearer ${freshJwt}`);
 
       expect(
@@ -112,14 +115,14 @@ describe("User Service", () => {
       );
 
       const res = await request(app)
-        .get("/user-service/user/refreshToken")
+        .get(getUrl(refreshToken.path))
         .set("Authorization", `Bearer ${expiredJWT}`);
 
       expect(ErrorResponseSchema.safeParse(res.body).success).toBeTruthy();
     });
 
     it("Should reject a missing JWT token", async () => {
-      const res = await request(app).get("/user-service/user/refreshToken");
+      const res = await request(app).get(getUrl(refreshToken.path));
 
       expect(ErrorResponseSchema.safeParse(res.body).success).toBeTruthy();
     });
@@ -134,7 +137,7 @@ describe("User Service", () => {
       } as JwtPayload);
 
       const res = await request(app)
-        .get("/user-service/users")
+        .get(getUrl(fetchUsers.path))
         .set("Authorization", `Bearer ${freshJwt}`);
 
       const dataResponseSchema = BaseResponseSchema.extend({
