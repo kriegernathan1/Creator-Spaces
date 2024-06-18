@@ -51,7 +51,7 @@ describe("User Service", () => {
       ).toBeTruthy();
     });
 
-    it("Should reject login with incorret password", async () => {
+    it("Should reject login with incorrect password", async () => {
       const body: SigninFields = {
         email: "me@email.com",
         password: "incorrectPassword",
@@ -84,6 +84,7 @@ describe("User Service", () => {
       expect((res.body as ErrorResponse).error.message).toEqual(
         duplicatedSecureMessage,
       );
+      expect(res.statusCode).toBe(HttpStatusCode.BadRequest);
     });
   });
 
@@ -119,12 +120,13 @@ describe("User Service", () => {
         .set("Authorization", `Bearer ${expiredJWT}`);
 
       expect(ErrorResponseSchema.safeParse(res.body).success).toBeTruthy();
+      expect(res.statusCode).toBe(HttpStatusCode.Unauthorized);
     });
 
     it("Should reject a missing JWT token", async () => {
       const res = await request(app).get(getUrl(refreshToken.path));
-
       expect(ErrorResponseSchema.safeParse(res.body).success).toBeTruthy();
+      expect(res.statusCode).toBe(HttpStatusCode.Unauthorized);
     });
   });
 
@@ -146,6 +148,13 @@ describe("User Service", () => {
 
       expect(dataResponseSchema.safeParse(res.body).success).toBe(true);
       expect((res.body as DataResponse<RedactedUser[]>).data).toBeDefined();
+      expect(res.statusCode).toBe(HttpStatusCode.Ok);
+    });
+
+    it("Should reject unauthenticated user", async () => {
+      const res = await request(app).get(getUrl(fetchUsers.path));
+      expect(ErrorResponseSchema.safeParse(res.body).success).toBe(true);
+      expect(res.statusCode).toBe(HttpStatusCode.Unauthorized);
     });
   });
 });
