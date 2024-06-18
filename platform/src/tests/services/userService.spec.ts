@@ -32,7 +32,7 @@ const getUrl = (endpointPath: string) => {
   return getEndpointUrl(SERVICE_URL_PREFIX, endpointPath);
 };
 
-const { signin, refreshToken, fetchUsers } = userServiceEndpoints;
+const { signin, refreshToken, fetchUsers, fetchUser } = userServiceEndpoints;
 
 describe("User Service", () => {
   describe("Login", () => {
@@ -155,6 +155,32 @@ describe("User Service", () => {
       const res = await request(app).get(getUrl(fetchUsers.path));
       expect(ErrorResponseSchema.safeParse(res.body).success).toBe(true);
       expect(res.statusCode).toBe(HttpStatusCode.Unauthorized);
+    });
+  });
+
+  describe("Fetch user", () => {
+    it("Should allow authenticated user to fetch self", async () => {
+      const payload = {
+        userId: "491bb71c-417f-4547-af7f-72c126d2b863",
+        namespace: "platform",
+        role: "platform_admin",
+      } as JwtPayload;
+      const freshJwt = new SecurityService({}).generateJwt(payload);
+
+      const res = await request(app)
+        .get(
+          getUrl(fetchUser.path).replace(
+            ":" + fetchUser.routeParams[0],
+            payload.userId,
+          ),
+        )
+        .set("Authorization", `Bearer ${freshJwt}`);
+
+      const dataResponseSchema = BaseResponseSchema.extend({
+        data: RedactedUserSchema,
+      });
+
+      expect(dataResponseSchema.safeParse(res.body).success).toBe(true);
     });
   });
 });

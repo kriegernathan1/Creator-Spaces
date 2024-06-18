@@ -1,3 +1,8 @@
+type Service = {
+  name: string;
+  path: string;
+};
+
 export const Services = {
   User: {
     name: "User",
@@ -7,4 +12,4 @@ export const Services = {
     name: "Post",
     path: "/post-service",
   },
-};
+} as const satisfies { [key: string]: Service };

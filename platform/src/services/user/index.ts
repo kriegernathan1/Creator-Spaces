@@ -46,7 +46,7 @@ export const userServiceEndpoints = {
     get path() {
       return `/user/:${this.routeParams![0]}?`;
     },
-    permissions: [],
+    permissions: ["get_user", "get_user_self"],
     description: "Fetch specifc user",
     protected: true,
     routeParams: ["id"],
@@ -78,4 +78,4 @@ export const userServiceEndpoints = {
     protected: true,
     routeParams: ["id"],
   },
-} satisfies Record<string, Endpoint>;
+} as const satisfies Record<string, Endpoint>;

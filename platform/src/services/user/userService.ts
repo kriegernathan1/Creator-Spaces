@@ -1,4 +1,5 @@
 import { Request, Response, Router } from "express";
+import { userServiceEndpoints } from ".";
 import { HttpStatusCode } from "../../enums/ResponseCodes";
 import { ResponseMessages } from "../../enums/ResponseMessages";
 import {
@@ -9,6 +10,7 @@ import {
 } from "../../internal-services/Database/types";
 import { userService } from "../../internal-services/ServiceManager";
 import {
+  RedactedUser,
   SigninFields,
   SigninFieldsSchema,
 } from "../../internal-services/User/UserService";
@@ -19,11 +21,11 @@ import {
 } from "../../middleware";
 import {
   BaseResponseFactory,
+  DataResponse,
   SendResponse,
 } from "../../models/Responses/Response";
 import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
 import { isAuthorizedToPerformUserAction } from "./middleware";
-import { userServiceEndpoints } from ".";
 
 const userRouter = Router({ mergeParams: true });
 
@@ -105,7 +107,12 @@ userRouter.get(
     const queriedUserId = req.params[fetchUser.routeParams![0]];
 
     const user = await userService.getUser(queriedUserId ?? userJwt.userId);
-    res.json(user);
+
+    const resBody: DataResponse<RedactedUser | {}> = {
+      code: HttpStatusCode.Ok,
+      data: user ?? {},
+    };
+    SendResponse(res, resBody);
   },
 );
 
