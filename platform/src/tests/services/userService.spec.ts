@@ -1,6 +1,7 @@
 import request from "supertest";
 import { z } from "zod";
 import { HttpStatusCode } from "../../enums/ResponseCodes";
+import { DatabaseService } from "../../internal-services/Database/DatabaseService";
 import {
   JwtPayload,
   SecurityService,
@@ -12,16 +13,25 @@ import {
 } from "../../internal-services/User/UserService";
 import { DataResponse } from "../../models/Responses/Response";
 import { ErrorResponse } from "../../models/Responses/errorResponse";
+import { UserRepository } from "../../repositories/UserRepository";
 import { app } from "../../routing";
 import { server } from "../../server";
 import { Services } from "../../services";
 import { userServiceEndpoints } from "../../services/user";
-import { getEndpointUrl } from "../helpers/helpers";
+import { getEndpointUrl, getGenericUser } from "../helpers/helpers";
 import {
   BaseResponseSchema,
   ErrorResponseSchema,
   SuccessfulSigninResponseSchema,
 } from "../helpers/responses.schema";
+import { NewUser } from "../../internal-services/Database/types";
+import {
+  setupServices,
+  userService,
+  userRepository,
+  securityService,
+  databaseService,
+} from "../../internal-services/ServiceManager";
 
 afterAll(() => {
   server.close();
@@ -35,6 +45,16 @@ const getUrl = (endpointPath: string) => {
 const { signin, refreshToken, fetchUsers, fetchUser } = userServiceEndpoints;
 
 describe("User Service", () => {
+  let namespace = "platform";
+
+  beforeAll(() => {
+    setupServices();
+  });
+
+  afterAll(async () => {
+    await databaseService.destroyConnectionPool();
+  });
+
   describe("Login", () => {
     it("Should login user with correct credentials and return token", async () => {
       const body: SigninFields = {
@@ -90,7 +110,7 @@ describe("User Service", () => {
 
   describe("Refresh Token", () => {
     it("Should return a new JWT token to a logged in user with valid JWT", async () => {
-      const freshJwt = new SecurityService({}).generateJwt({
+      const freshJwt = securityService.generateJwt({
         userId: "1234",
         namespace: "platform",
         role: "platform_admin",
@@ -106,7 +126,7 @@ describe("User Service", () => {
     });
 
     it("Should reject an expired JWT token", async () => {
-      const expiredJWT = new SecurityService({}).generateJwt(
+      const expiredJWT = securityService.generateJwt(
         {
           userId: "1234",
           namespace: "platform",
@@ -132,10 +152,21 @@ describe("User Service", () => {
 
   describe("Fetch Users", () => {
     it("Should allow authenticated user with permissions to fetch users", async () => {
-      const freshJwt = new SecurityService({}).generateJwt({
-        userId: "1234",
-        namespace: "platform",
+      const user = {
+        id: "1234",
+        email: "user@email.com",
+        first_name: "John",
+        last_name: "Doe",
+        namespace,
+        password: "password",
         role: "platform_admin",
+      } satisfies NewUser;
+      userRepository.addUser(user);
+
+      const freshJwt = new SecurityService({}).generateJwt({
+        userId: user.id,
+        namespace: user.namespace,
+        role: user.role,
       } as JwtPayload);
 
       const res = await request(app)
@@ -149,6 +180,8 @@ describe("User Service", () => {
       expect(dataResponseSchema.safeParse(res.body).success).toBe(true);
       expect((res.body as DataResponse<RedactedUser[]>).data).toBeDefined();
       expect(res.statusCode).toBe(HttpStatusCode.Ok);
+
+      userRepository.deleteUser(user.id!, user.namespace);
     });
 
     it("Should reject unauthenticated user", async () => {
@@ -159,11 +192,40 @@ describe("User Service", () => {
   });
 
   describe("Fetch user", () => {
+    let baseUserId = "1234";
+    let platformAdminUserId = "4321";
+
+    beforeEach(async () => {
+      await userRepository.addUser({
+        email: "user@email.com",
+        first_name: "John",
+        last_name: "Doe",
+        namespace: namespace,
+        password: "fake",
+        role: "user",
+        id: baseUserId,
+      });
+      await userRepository.addUser({
+        email: "user@email.com",
+        first_name: "John",
+        last_name: "Doe",
+        namespace: "platform",
+        password: "test",
+        role: "platform_admin",
+        id: platformAdminUserId,
+      });
+    });
+
+    afterAll(async () => {
+      await userRepository.deleteUser(baseUserId, namespace);
+      await userRepository.deleteUser(platformAdminUserId, namespace);
+    });
+
     it("Should allow authenticated user to fetch self", async () => {
       const payload = {
-        userId: "491bb71c-417f-4547-af7f-72c126d2b863",
+        userId: baseUserId,
         namespace: "platform",
-        role: "platform_admin",
+        role: "user",
       } as JwtPayload;
       const freshJwt = new SecurityService({}).generateJwt(payload);
 
@@ -181,6 +243,38 @@ describe("User Service", () => {
       });
 
       expect(dataResponseSchema.safeParse(res.body).success).toBe(true);
+    });
+
+    it("Should allow certain roles to fetch any user", async () => {
+      const userId = "1111";
+      const user = getGenericUser(userId);
+      user.role = "platform_admin";
+
+      userRepository.addUser(user);
+
+      const payload = {
+        userId: userId,
+        namespace: user.namespace,
+        role: user.role,
+      } as JwtPayload;
+      const freshJwt = new SecurityService({}).generateJwt(payload);
+
+      const res = await request(app)
+        .get(
+          getUrl(fetchUser.path).replace(
+            ":" + fetchUser.routeParams[0],
+            payload.userId,
+          ),
+        )
+        .set("Authorization", `Bearer ${freshJwt}`);
+
+      const dataResponseSchema = BaseResponseSchema.extend({
+        data: RedactedUserSchema,
+      });
+
+      expect(dataResponseSchema.safeParse(res.body).success).toBe(true);
+
+      userRepository.deleteUser(user.id!, user.namespace);
     });
   });
 });

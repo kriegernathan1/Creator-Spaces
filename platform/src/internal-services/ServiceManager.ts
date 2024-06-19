@@ -13,9 +13,13 @@ export interface Services {
 let userService: UserService;
 let securityService: SecurityService;
 let databaseService: DatabaseService;
+let userRepository: UserRepository;
 
 export function setupServices() {
-  const connectionString = process.env.DEV_POSTGRESQL_DB_CONN_URL;
+  const connectionString =
+    process.env.ENV === "DEV"
+      ? process.env.DEV_POSTGRESQL_DB_CONN_URL
+      : process.env.TEST_POSTGRESQL_DB_CONN_URL;
 
   if (connectionString === undefined) {
     console.error("Bad connection string");
@@ -26,11 +30,11 @@ export function setupServices() {
     connectionString: connectionString,
   });
 
-  const userRepository = new UserRepository({
+  userRepository = new UserRepository({
     DatabaseService: databaseService,
   });
 
-  const securityService = new SecurityService({});
+  securityService = new SecurityService({});
 
   userService = new UserService({
     securityService,
@@ -42,4 +46,4 @@ export function disposeServices() {
   databaseService.destroyConnectionPool();
 }
 
-export { userService, securityService };
+export { userService, securityService, userRepository, databaseService };

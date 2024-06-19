@@ -7,7 +7,7 @@
     "start": "ts-node src/server.ts",
     "build": "tsc",
     "serve": "node dist/index.js",
-    "test": "jest"
+    "test": "jest --watch"
   },
   "author": "Nathan Krieger",
   "license": "ISC",

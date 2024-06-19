@@ -4,6 +4,7 @@ declare global {
       [key: string]: string | undefined;
       PLATFORM_PORT: string;
       DEV_POSTGRESQL_DB_CONN_URL: string;
+      TEST_POSTGRESQL_DB_CONN_URL: string;
       JWT_SECRET: string;
       TESTING_PORT: string;
       ENV: "DEV" | "PROD" | "TEST";
