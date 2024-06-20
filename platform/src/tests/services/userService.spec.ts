@@ -323,7 +323,7 @@ describe("User Service", () => {
   });
 
   describe("Create user with any role", () => {
-    it("Should allow roles with proper permissions to create user", async () => {
+    it("Should allow users with proper permissions to create user", async () => {
       const newUser: NewUser = getGenericUser("1234");
 
       const platformAdminJwt = securityService.generateJwt({
