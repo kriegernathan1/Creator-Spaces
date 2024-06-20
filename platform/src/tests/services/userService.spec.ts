@@ -54,6 +54,7 @@ describe("User Service", () => {
   });
 
   afterAll(async () => {
+    await userRepository.clearTable();
     await databaseService.destroyConnectionPool();
   });
 
