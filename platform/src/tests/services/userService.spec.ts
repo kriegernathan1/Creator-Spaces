@@ -216,7 +216,7 @@ describe("User Service", () => {
       });
     });
 
-    afterAll(async () => {
+    afterEach(async () => {
       await userRepository.deleteUser(baseUserId, namespace);
       await userRepository.deleteUser(platformAdminUserId, namespace);
     });
