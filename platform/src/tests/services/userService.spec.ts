@@ -42,8 +42,15 @@ const getUrl = (endpointPath: string) => {
   return getEndpointUrl(SERVICE_URL_PREFIX, endpointPath);
 };
 
-const { signin, refreshToken, fetchUsers, fetchUser, createUser, deleteUser } =
-  userServiceEndpoints;
+const {
+  signin,
+  signup,
+  refreshToken,
+  fetchUsers,
+  fetchUser,
+  createUser,
+  deleteUser,
+} = userServiceEndpoints;
 
 describe("User Service", () => {
   let namespace = "platform";
@@ -118,11 +125,31 @@ describe("User Service", () => {
     });
   });
 
+  describe("Signup", () => {
+    it("Should create new user with allowed values", async () => {
+      const newUser = getGenericUser();
+
+      const res = await request(app).post(getUrl(signup.path)).send(newUser);
+      expect(res.statusCode).toBe(HttpStatusCode.Created);
+
+      const createdUser = await userRepository.getUserBy("id", newUser.id!);
+      expect(createdUser).toBeDefined();
+    });
+
+    it("Should reject new user with incorrect values", async () => {
+      const newUser = getGenericUser();
+      newUser.role = "platform_admin";
+
+      const res = await request(app).post(getUrl(signup.path)).send(newUser);
+      expect(res.statusCode).toBe(HttpStatusCode.Forbidden);
+    });
+  });
+
   describe("Refresh Token", () => {
     it("Should return a new JWT token to a logged in user with valid JWT", async () => {
       const freshJwt = securityService.generateJwt({
         userId: "1234",
-        namespace: "platform",
+        namespace,
         role: "platform_admin",
       } as JwtPayload);
 
@@ -139,7 +166,7 @@ describe("User Service", () => {
       const expiredJWT = securityService.generateJwt(
         {
           userId: "1234",
-          namespace: "platform",
+          namespace,
           role: "platform_admin",
         } as JwtPayload,
         "0",
@@ -234,7 +261,7 @@ describe("User Service", () => {
     it("Should allow authenticated user to fetch self", async () => {
       const payload = {
         userId: baseUserId,
-        namespace: "platform",
+        namespace,
         role: "user",
       } as JwtPayload;
       const freshJwt = new SecurityService({}).generateJwt(payload);
@@ -330,7 +357,7 @@ describe("User Service", () => {
 
       const platformAdminJwt = securityService.generateJwt({
         userId: "1111",
-        namespace: "platform",
+        namespace,
         role: "platform_admin",
       } as JwtPayload);
 
@@ -353,7 +380,7 @@ describe("User Service", () => {
 
       const platformAdminJwt = securityService.generateJwt({
         userId: "1111",
-        namespace: "platform",
+        namespace,
         role: "user",
       } as JwtPayload);
 
