@@ -46,6 +46,7 @@ export const UserSchema = z
 
 export const NewUserSchema = UserSchema.extend({
   id: z.optional(z.string()),
+  created_at: z.optional(z.string()),
 }).strict() satisfies z.ZodType<NewUser>;
 
 export const UpdateUserSchema = z

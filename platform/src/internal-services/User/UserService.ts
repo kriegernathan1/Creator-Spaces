@@ -103,17 +103,18 @@ export class UserService implements IUserService {
 
   async signin(fields: SigninFields): Promise<SigninResponse> {
     const user = await this.userRepository.getUserBy("email", fields.email);
-    const genericErrorResponse = ErrorResponseFactory(
-      HttpStatusCode.BadRequest,
-      ResponseMessages.UnableToFindUser,
-    );
 
-    if (
-      user === undefined ||
-      user.email === undefined ||
-      user.password === undefined
-    ) {
-      return genericErrorResponse;
+    if (user === undefined) {
+      return ErrorResponseFactory(
+        HttpStatusCode.Unauthorized,
+        ResponseMessages.UnableToFindUser,
+      );
+    }
+    if (user.email === undefined || user.password === undefined) {
+      return ErrorResponseFactory(
+        HttpStatusCode.BadRequest,
+        ResponseMessages.BadRequest,
+      );
     }
 
     const doPasswordsMatch = await this.securityService.arePasswordsEqual(

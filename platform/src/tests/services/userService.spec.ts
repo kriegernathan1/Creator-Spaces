@@ -42,7 +42,8 @@ const getUrl = (endpointPath: string) => {
   return getEndpointUrl(SERVICE_URL_PREFIX, endpointPath);
 };
 
-const { signin, refreshToken, fetchUsers, fetchUser } = userServiceEndpoints;
+const { signin, refreshToken, fetchUsers, fetchUser, createUser, deleteUser } =
+  userServiceEndpoints;
 
 describe("User Service", () => {
   let namespace = "platform";
@@ -57,9 +58,14 @@ describe("User Service", () => {
 
   describe("Login", () => {
     it("Should login user with correct credentials and return token", async () => {
+      const user = getGenericUser();
+      const plainPassword = user.password;
+      user.password = await securityService.hashPassword(user.password);
+      await userRepository.addUser(user);
+
       const body: SigninFields = {
-        email: "me@email.com",
-        password: "password1",
+        email: user.email,
+        password: plainPassword,
       };
       const res = await request(app)
         .post(getUrl(signin.path))
@@ -69,6 +75,8 @@ describe("User Service", () => {
       expect(
         SuccessfulSigninResponseSchema.safeParse(res.body).success,
       ).toBeTruthy();
+
+      await userRepository.deleteUser(user.id!, user.namespace);
     });
 
     it("Should reject login with incorrect password", async () => {
@@ -104,7 +112,7 @@ describe("User Service", () => {
       expect((res.body as ErrorResponse).error.message).toEqual(
         duplicatedSecureMessage,
       );
-      expect(res.statusCode).toBe(HttpStatusCode.BadRequest);
+      expect(res.statusCode).toBe(HttpStatusCode.Unauthorized);
     });
   });
 
@@ -311,6 +319,31 @@ describe("User Service", () => {
 
       userRepository.deleteUser(requestingUser.id!, requestingUser.namespace);
       userRepository.deleteUser(fetchedUserId, fetchedUser.namespace);
+    });
+  });
+
+  describe("Create user with any role", () => {
+    it("Should allow roles with proper permissions to create user", async () => {
+      const newUser: NewUser = getGenericUser("1234");
+
+      const platformAdminJwt = securityService.generateJwt({
+        userId: "1111",
+        namespace: "platform",
+        role: "platform_admin",
+      } as JwtPayload);
+
+      const res = await request(app)
+        .post(getUrl(createUser.path))
+        .send(newUser)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${platformAdminJwt}`);
+
+      expect(res.statusCode).toEqual(HttpStatusCode.Created);
+
+      const userFromDB = userRepository.getUserBy("id", newUser.id!);
+      expect(userFromDB).toBeDefined();
+
+      await userRepository.deleteUser(newUser.id!, newUser.namespace);
     });
   });
 });
