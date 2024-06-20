@@ -19,6 +19,7 @@ export interface IUserRepository {
     namespace: string,
     user: UpdateUser,
   ): Promise<boolean>;
+  clearTable(): Promise<boolean>;
 }
 
 export class UserRepository implements IUserRepository {
@@ -84,6 +85,15 @@ export class UserRepository implements IUserRepository {
         .where("id", "=", userId)
         .where("namespace", "=", namespace)
         .execute();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async clearTable(): Promise<boolean> {
+    try {
+      await this.client.deleteFrom("platform_user").execute();
       return true;
     } catch {
       return false;

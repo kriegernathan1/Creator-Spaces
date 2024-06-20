@@ -48,8 +48,9 @@ const { signin, refreshToken, fetchUsers, fetchUser, createUser, deleteUser } =
 describe("User Service", () => {
   let namespace = "platform";
 
-  beforeAll(() => {
+  beforeAll(async () => {
     setupServices();
+    await userRepository.clearTable();
   });
 
   afterAll(async () => {
@@ -322,7 +323,7 @@ describe("User Service", () => {
     });
   });
 
-  describe("Create user with any role", () => {
+  describe("Create user", () => {
     it("Should allow users with proper permissions to create user", async () => {
       const newUser: NewUser = getGenericUser("1234");
 
@@ -344,6 +345,24 @@ describe("User Service", () => {
       expect(userFromDB).toBeDefined();
 
       await userRepository.deleteUser(newUser.id!, newUser.namespace);
+    });
+
+    it("Should reject users without permissions to create users", async () => {
+      const newUser: NewUser = getGenericUser("1234");
+
+      const platformAdminJwt = securityService.generateJwt({
+        userId: "1111",
+        namespace: "platform",
+        role: "user",
+      } as JwtPayload);
+
+      const res = await request(app)
+        .post(getUrl(createUser.path))
+        .send(newUser)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${platformAdminJwt}`);
+
+      expect(res.statusCode).toEqual(HttpStatusCode.Forbidden);
     });
   });
 });
