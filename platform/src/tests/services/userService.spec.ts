@@ -245,17 +245,20 @@ describe("User Service", () => {
       expect(dataResponseSchema.safeParse(res.body).success).toBe(true);
     });
 
-    it("Should allow certain roles to fetch any user", async () => {
-      const userId = "1111";
-      const user = getGenericUser(userId);
-      user.role = "platform_admin";
+    it("Should allow roles with proper permissions to fetch any user", async () => {
+      const requestingUserId = "1111";
+      const requestingUser = getGenericUser(requestingUserId);
+      requestingUser.role = "platform_admin";
+      userRepository.addUser(requestingUser);
 
-      userRepository.addUser(user);
+      const fetchedUserId = "1234";
+      const fetchedUser = getGenericUser(fetchedUserId);
+      userRepository.addUser(fetchedUser);
 
       const payload = {
-        userId: userId,
-        namespace: user.namespace,
-        role: user.role,
+        userId: requestingUserId,
+        namespace: requestingUser.namespace,
+        role: requestingUser.role,
       } as JwtPayload;
       const freshJwt = new SecurityService({}).generateJwt(payload);
 
@@ -263,7 +266,7 @@ describe("User Service", () => {
         .get(
           getUrl(fetchUser.path).replace(
             ":" + fetchUser.routeParams[0],
-            payload.userId,
+            fetchedUserId,
           ),
         )
         .set("Authorization", `Bearer ${freshJwt}`);
@@ -274,7 +277,40 @@ describe("User Service", () => {
 
       expect(dataResponseSchema.safeParse(res.body).success).toBe(true);
 
-      userRepository.deleteUser(user.id!, user.namespace);
+      userRepository.deleteUser(requestingUser.id!, requestingUser.namespace);
+      userRepository.deleteUser(fetchedUserId, fetchedUser.namespace);
+    });
+
+    it("Should reject roles without proper permissions to fetch any user other than self", async () => {
+      const requestingUserId = "1111";
+      const requestingUser = getGenericUser(requestingUserId);
+      requestingUser.role = "user";
+      userRepository.addUser(requestingUser);
+
+      const fetchedUserId = "1234";
+      const fetchedUser = getGenericUser(fetchedUserId);
+      userRepository.addUser(fetchedUser);
+
+      const payload = {
+        userId: requestingUserId,
+        namespace: requestingUser.namespace,
+        role: requestingUser.role,
+      } as JwtPayload;
+      const freshJwt = new SecurityService({}).generateJwt(payload);
+
+      const res = await request(app)
+        .get(
+          getUrl(fetchUser.path).replace(
+            ":" + fetchUser.routeParams[0],
+            fetchedUserId,
+          ),
+        )
+        .set("Authorization", `Bearer ${freshJwt}`);
+
+      expect(ErrorResponseSchema.safeParse(res.body).success).toBe(true);
+
+      userRepository.deleteUser(requestingUser.id!, requestingUser.namespace);
+      userRepository.deleteUser(fetchedUserId, fetchedUser.namespace);
     });
   });
 });
