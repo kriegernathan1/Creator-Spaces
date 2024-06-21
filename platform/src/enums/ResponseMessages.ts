@@ -4,6 +4,7 @@ export enum ResponseMessages {
   BadRequest = "Invalid parameters passed",
   UnauthenticatedAction = "Action requires authentication",
   UnauthorizedAction = "Action not authorized",
+  ForbiddenAction = "Action is forbidden",
   // End Generic Messages =====================================
 
   // User Service ===================================

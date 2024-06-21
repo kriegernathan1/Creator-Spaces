@@ -1,11 +1,17 @@
 import request from "supertest";
 import { z } from "zod";
 import { HttpStatusCode } from "../../enums/ResponseCodes";
-import { DatabaseService } from "../../internal-services/Database/DatabaseService";
+import { NewUser, UpdateUser } from "../../internal-services/Database/types";
 import {
   JwtPayload,
   SecurityService,
 } from "../../internal-services/Security/SecurityService";
+import {
+  databaseService,
+  securityService,
+  setupServices,
+  userRepository,
+} from "../../internal-services/ServiceManager";
 import {
   RedactedUser,
   RedactedUserSchema,
@@ -13,25 +19,20 @@ import {
 } from "../../internal-services/User/UserService";
 import { DataResponse } from "../../models/Responses/Response";
 import { ErrorResponse } from "../../models/Responses/errorResponse";
-import { UserRepository } from "../../repositories/UserRepository";
 import { app } from "../../routing";
 import { server } from "../../server";
 import { Services } from "../../services";
 import { userServiceEndpoints } from "../../services/user";
-import { getEndpointUrl, getGenericUser } from "../helpers/helpers";
+import {
+  getEndpointUrl,
+  getEndpointUrlWithParams,
+  getGenericUser,
+} from "../helpers/helpers";
 import {
   BaseResponseSchema,
   ErrorResponseSchema,
   SuccessfulSigninResponseSchema,
 } from "../helpers/responses.schema";
-import { NewUser } from "../../internal-services/Database/types";
-import {
-  setupServices,
-  userService,
-  userRepository,
-  securityService,
-  databaseService,
-} from "../../internal-services/ServiceManager";
 
 afterAll(() => {
   server.close();
@@ -49,13 +50,14 @@ const {
   fetchUsers,
   fetchUser,
   createUser,
+  updateUser,
   deleteUser,
 } = userServiceEndpoints;
 
 describe("User Service", () => {
   let namespace = "platform";
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     setupServices();
     await userRepository.clearTable();
   });
@@ -392,5 +394,78 @@ describe("User Service", () => {
 
       expect(res.statusCode).toEqual(HttpStatusCode.Forbidden);
     });
+  });
+
+  fdescribe("Update user", () => {
+    it("Should be able to update self", async () => {});
+
+    it("Should reject update of role without proper permissions", async () => {});
+
+    it("Should update user if user is authorized", async () => {
+      const platformAdminJwt = securityService.generateJwt({
+        userId: "1234",
+        namespace,
+        role: "platform_admin",
+      } as JwtPayload);
+
+      const existingUser: NewUser = getGenericUser("1111");
+      expect(await userRepository.addUser(existingUser)).toBe(true);
+
+      const updatedUser: UpdateUser = {
+        first_name: existingUser.first_name + "1",
+        last_name: existingUser.last_name + "1",
+        email: "random@email.com",
+        namespace: "platform" + "1",
+        role: "user",
+      };
+
+      const endpointUrl = getUrl(
+        getEndpointUrlWithParams(updateUser, existingUser.id!),
+      );
+
+      const res = await request(app)
+        .put(endpointUrl)
+        .send(updatedUser)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${platformAdminJwt}`);
+      expect(res.statusCode).toBe(HttpStatusCode.Ok);
+
+      const userFromDb = await userRepository.getUserBy("id", existingUser.id!);
+
+      expect(userFromDb).toBeDefined();
+
+      Object.keys(updatedUser).forEach((key: string) => {
+        let correctKey = key as keyof typeof updatedUser;
+        expect((userFromDb as any)[key]).toBe(updatedUser[correctKey]);
+      });
+    });
+
+    it("Should not allow password changes", async () => {
+      const platformAdminJwt = securityService.generateJwt({
+        userId: "1234",
+        namespace,
+        role: "platform_admin",
+      } as JwtPayload);
+
+      const existingUser: NewUser = getGenericUser("1111");
+      expect(await userRepository.addUser(existingUser)).toBe(true);
+
+      const updatedUser: UpdateUser = {
+        password: "someOtherPassword",
+      };
+
+      const endpointUrl = getUrl(
+        getEndpointUrlWithParams(updateUser, existingUser.id!),
+      );
+
+      const res = await request(app)
+        .put(endpointUrl)
+        .send(updatedUser)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${platformAdminJwt}`);
+      expect(res.statusCode).toBe(HttpStatusCode.Forbidden);
+    });
+
+    it("Should reject users from updating other users without permissions", async () => {});
   });
 });

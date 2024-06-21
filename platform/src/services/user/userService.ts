@@ -134,6 +134,17 @@ userRouter.put(
     const authenticatedUserJwt = (req as AuthenticatedRequest).auth;
     const queriedUserId = req.params[updateUser.routeParams![0]];
 
+    if ((req.body as UpdateUser).password !== undefined) {
+      SendResponse(
+        res,
+        ErrorResponseFactory(
+          HttpStatusCode.Forbidden,
+          ResponseMessages.ForbiddenAction,
+        ),
+      );
+      return;
+    }
+
     const user = req.body as UpdateUser;
     SendResponse(
       res,

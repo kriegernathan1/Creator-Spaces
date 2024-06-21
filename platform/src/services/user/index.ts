@@ -1,7 +1,7 @@
 import { Permission } from "../../internal-services/Role/role";
 import HTTPMethod from "../../models/Responses/HTTPMethod";
 
-type Endpoint = {
+export type Endpoint = {
   method: Action;
   path: string;
   permissions: Permission[];
