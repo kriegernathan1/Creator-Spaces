@@ -396,7 +396,7 @@ describe("User Service", () => {
     });
   });
 
-  fdescribe("Update user", () => {
+  describe("Update user", () => {
     it("Should be able to update self", async () => {});
 
     it("Should reject update of role without proper permissions", async () => {});
