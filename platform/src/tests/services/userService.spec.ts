@@ -62,7 +62,7 @@ describe("User Service", () => {
     await userRepository.clearTable();
   });
 
-  afterAll(async () => {
+  afterEach(async () => {
     await userRepository.clearTable();
     await databaseService.destroyConnectionPool();
   });
@@ -553,6 +553,68 @@ describe("User Service", () => {
         .set("Accept", "application/json")
         .set("Authorization", `Bearer ${platformAdminJwt}`);
       expect(res.statusCode).toBe(HttpStatusCode.Forbidden);
+    });
+  });
+
+  describe("Delete User", () => {
+    it("Should be able to delete self with any role", async () => {
+      const newUser: NewUser = getGenericUser("1234");
+      newUser.role = "user";
+
+      expect(await userRepository.addUser(newUser)).toBe(true);
+
+      const platformAdminJwt = securityService.generateJwt({
+        userId: newUser.id,
+        namespace,
+        role: newUser.role,
+      } as JwtPayload);
+
+      const res = await request(app)
+        .delete(getUrl(getEndpointUrlWithParams(deleteUser, newUser.id!)))
+        .set("Authorization", `Bearer ${platformAdminJwt}`);
+      expect(res.statusCode).toEqual(HttpStatusCode.Ok);
+
+      expect(await userRepository.getUserBy("id", newUser.id!)).toBeUndefined();
+    });
+
+    it("Should be able to delete any user with correct permissions", async () => {
+      const newUser: NewUser = getGenericUser("1234");
+      newUser.role = "user";
+
+      expect(await userRepository.addUser(newUser)).toBe(true);
+
+      const platformAdminJwt = securityService.generateJwt({
+        userId: "4321",
+        namespace,
+        role: "platform_admin",
+      } as JwtPayload);
+
+      const res = await request(app)
+        .delete(getUrl(getEndpointUrlWithParams(deleteUser, newUser.id!)))
+        .set("Authorization", `Bearer ${platformAdminJwt}`);
+      expect(res.statusCode).toEqual(HttpStatusCode.Ok);
+
+      expect(await userRepository.getUserBy("id", newUser.id!)).toBeUndefined();
+    });
+
+    it("Should not allow roles without permissions to delete other users", async () => {
+      const newUser: NewUser = getGenericUser("1234");
+      newUser.role = "user";
+
+      expect(await userRepository.addUser(newUser)).toBe(true);
+
+      const platformAdminJwt = securityService.generateJwt({
+        userId: "4321",
+        namespace,
+        role: "user",
+      } as JwtPayload);
+
+      const res = await request(app)
+        .delete(getUrl(getEndpointUrlWithParams(deleteUser, newUser.id!)))
+        .set("Authorization", `Bearer ${platformAdminJwt}`);
+      expect(res.statusCode).toEqual(HttpStatusCode.Forbidden);
+
+      expect(await userRepository.getUserBy("id", newUser.id!)).toBeDefined();
     });
   });
 });
