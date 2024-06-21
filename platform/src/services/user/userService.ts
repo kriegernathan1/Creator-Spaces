@@ -26,6 +26,7 @@ import {
 } from "../../models/Responses/Response";
 import { ErrorResponseFactory } from "../../models/Responses/errorResponse";
 import { isAuthorizedToPerformUserAction } from "./middleware";
+import { RolePermissionMap } from "../../internal-services/Role/role";
 
 const userRouter = Router({ mergeParams: true });
 
@@ -133,15 +134,24 @@ userRouter.put(
   async (req: Request, res: Response) => {
     const authenticatedUserJwt = (req as AuthenticatedRequest).auth;
     const queriedUserId = req.params[updateUser.routeParams![0]];
+    const resBody = req.body as UpdateUser;
 
-    if ((req.body as UpdateUser).password !== undefined) {
-      SendResponse(
-        res,
-        ErrorResponseFactory(
-          HttpStatusCode.Forbidden,
-          ResponseMessages.ForbiddenAction,
-        ),
-      );
+    const forbiddenResponse = ErrorResponseFactory(
+      HttpStatusCode.Forbidden,
+      ResponseMessages.ForbiddenAction,
+    );
+
+    if (resBody.password !== undefined) {
+      SendResponse(res, forbiddenResponse);
+      return;
+    }
+
+    const requestingUserJwt = (req as AuthenticatedRequest).auth;
+    const rolePermissions = RolePermissionMap[requestingUserJwt.role];
+    const canChangeRole = rolePermissions.permissions.includes("update_user");
+
+    if (resBody.role && canChangeRole === false) {
+      SendResponse(res, forbiddenResponse);
       return;
     }
 

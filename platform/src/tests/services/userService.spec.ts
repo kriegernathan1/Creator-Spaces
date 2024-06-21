@@ -397,9 +397,68 @@ describe("User Service", () => {
   });
 
   describe("Update user", () => {
-    it("Should be able to update self", async () => {});
+    it("Should be able to update self with any role", async () => {
+      const existingUser: NewUser = getGenericUser("1111");
+      existingUser.role = "user";
+      const userJwt = securityService.generateJwt({
+        userId: existingUser.id,
+        namespace,
+        role: existingUser.role,
+      } as JwtPayload);
 
-    it("Should reject update of role without proper permissions", async () => {});
+      expect(await userRepository.addUser(existingUser)).toBe(true);
+
+      const updatedUser: UpdateUser = {
+        first_name: existingUser.first_name + "1",
+        last_name: existingUser.last_name + "1",
+        email: "random@email.com",
+        namespace: "platform" + "1",
+      };
+
+      const endpointUrl = getUrl(
+        getEndpointUrlWithParams(updateUser, existingUser.id!),
+      );
+
+      const res = await request(app)
+        .put(endpointUrl)
+        .send(updatedUser)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${userJwt}`);
+      expect(res.statusCode).toBe(HttpStatusCode.Ok);
+
+      const userFromDb = await userRepository.getUserBy("id", existingUser.id!);
+
+      expect(userFromDb).toBeDefined();
+
+      Object.keys(updatedUser).forEach((key: string) => {
+        let correctKey = key as keyof typeof updatedUser;
+        expect((userFromDb as any)[key]).toBe(updatedUser[correctKey]);
+      });
+    });
+
+    it("Should reject update of role without proper permissions", async () => {
+      const jwt = securityService.generateJwt({
+        userId: "1234",
+        namespace,
+        role: "user",
+      } as JwtPayload);
+      const existingUser: NewUser = getGenericUser("1111");
+
+      const updatedUser: UpdateUser = {
+        first_name: existingUser.first_name,
+      };
+
+      const endpointUrl = getUrl(
+        getEndpointUrlWithParams(updateUser, existingUser.id!),
+      );
+
+      const res = await request(app)
+        .put(endpointUrl)
+        .send(updatedUser)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${jwt}`);
+      expect(res.statusCode).toBe(HttpStatusCode.Forbidden);
+    });
 
     it("Should update user if user is authorized", async () => {
       const platformAdminJwt = securityService.generateJwt({
@@ -466,6 +525,34 @@ describe("User Service", () => {
       expect(res.statusCode).toBe(HttpStatusCode.Forbidden);
     });
 
-    it("Should reject users from updating other users without permissions", async () => {});
+    it("Should reject users from updating other users without permissions", async () => {
+      const platformAdminJwt = securityService.generateJwt({
+        userId: "1234",
+        namespace,
+        role: "user",
+      } as JwtPayload);
+
+      const existingUser: NewUser = getGenericUser("1111");
+      expect(await userRepository.addUser(existingUser)).toBe(true);
+
+      const updatedUser: UpdateUser = {
+        first_name: existingUser.first_name + "1",
+        last_name: existingUser.last_name + "1",
+        email: "random@email.com",
+        namespace: "platform" + "1",
+        role: "user",
+      };
+
+      const endpointUrl = getUrl(
+        getEndpointUrlWithParams(updateUser, existingUser.id!),
+      );
+
+      const res = await request(app)
+        .put(endpointUrl)
+        .send(updatedUser)
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${platformAdminJwt}`);
+      expect(res.statusCode).toBe(HttpStatusCode.Forbidden);
+    });
   });
 });
